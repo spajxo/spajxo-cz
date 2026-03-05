@@ -17,6 +17,7 @@ applications:
         hooks:
             build: |
                 set -e
+                export APP_ENV=prod
                 composer install --no-dev --optimize-autoloader --no-interaction
                 php bin/console tailwind:build --minify
                 php bin/console asset-map:compile
