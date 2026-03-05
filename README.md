@@ -31,4 +31,4 @@ php bin/console tailwind:build --watch
 - **Tailwind CSS v4** — utility-first CSS (via [TailwindBundle](https://github.com/symfonycasts/tailwind-bundle), no Node.js needed)
 - **AssetMapper** — native Symfony asset management (no Webpack)
 - **Twig Components** — reusable UI components
-- **Shared hosting** — deployed via FTPS from GitHub Actions (auto-deploy on push to `main`)
+- **Shared hosting** — deployed via [dg/ftp-deployment](https://github.com/dg/ftp-deployment) (pseudo-atomic FTPS deploy on push to `main`)
