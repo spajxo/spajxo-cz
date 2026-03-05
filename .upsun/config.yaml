@@ -11,13 +11,18 @@ applications:
         build:
             flavor: none
 
+        mounts:
+            "/var": { source: "storage", source_path: "var" }
+
         hooks:
             build: |
                 set -e
-                symfony-build
+                composer install --no-dev --optimize-autoloader --no-interaction
+                php bin/console tailwind:build --minify
+                php bin/console asset-map:compile
             deploy: |
                 set -e
-                symfony-deploy
+                php bin/console cache:clear
 
 routes:
     "https://{default}/":
