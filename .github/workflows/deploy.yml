@@ -27,13 +27,30 @@ jobs:
       - run: php bin/console tailwind:build --minify
       - run: php bin/console asset-map:compile
 
-      - name: SFTP Deploy
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local_path: './*'
-          remote_path: /
-          delete_remote_files: true
-          rsyncArgs: '--exclude=.git --exclude=.github --exclude=.claude --exclude=.env --exclude=.env.dev --exclude=.env.local --exclude=tests --exclude=var --exclude=CLAUDE.md --exclude=README.md'
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy via SFTP (lftp mirror)
+        env:
+          SFTP_HOST: ${{ secrets.FTP_HOST }}
+          SFTP_USER: ${{ secrets.FTP_USER }}
+          SFTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes;
+            set net:max-retries 3;
+            set net:reconnect-interval-base 5;
+            open sftp://$SFTP_USER:$SFTP_PASS@$SFTP_HOST;
+            mirror --reverse --delete --verbose \
+              --exclude='^\.git/' \
+              --exclude='^\.github/' \
+              --exclude='^\.claude/' \
+              --exclude='^\.env$' \
+              --exclude='^\.env\.dev$' \
+              --exclude='^\.env\.local$' \
+              --exclude='^tests/' \
+              --exclude='^var/' \
+              --exclude='^CLAUDE\.md$' \
+              --exclude='^README\.md$' \
+              ./ /
+          "
