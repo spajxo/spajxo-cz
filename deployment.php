@@ -25,6 +25,7 @@ return [
             'symfony.lock',
             'var/cache/*',
             'var/log/*',
+            'var/tailwind/*',
             'tests/*',
             'phpunit*',
             'phpstan*',
