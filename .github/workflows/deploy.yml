@@ -34,6 +34,6 @@ jobs:
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASSWORD }}
           local_path: './*'
-          remote_path: /spajxo.cz/
+          remote_path: /
           delete_remote_files: true
           rsyncArgs: '--exclude=.git --exclude=.github --exclude=.claude --exclude=.env --exclude=.env.dev --exclude=.env.local --exclude=tests --exclude=var --exclude=CLAUDE.md --exclude=README.md'
