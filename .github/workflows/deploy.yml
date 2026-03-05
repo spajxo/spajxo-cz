@@ -28,21 +28,12 @@ jobs:
       - run: php bin/console asset-map:compile
 
       - name: SFTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          server-dir: /spajxo.cz/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.claude/**
-            .env
-            .env.dev
-            .env.local
-            tests/**
-            var/**
-            CLAUDE.md
-            README.md
+          local_path: './*'
+          remote_path: /spajxo.cz/
+          delete_remote_files: true
+          rsyncArgs: '--exclude=.git --exclude=.github --exclude=.claude --exclude=.env --exclude=.env.dev --exclude=.env.local --exclude=tests --exclude=var --exclude=CLAUDE.md --exclude=README.md'
