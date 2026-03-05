@@ -33,26 +33,33 @@ jobs:
         env:
           SFTP_HOST: ${{ secrets.FTP_HOST }}
           SFTP_USER: ${{ secrets.FTP_USER }}
-          LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          SFTP_PASS: ${{ secrets.FTP_PASSWORD }}
         run: |
-          lftp -u "${SFTP_USER}" -e "
-            set sftp:auto-confirm yes;
-            set sftp:connect-program 'ssh -o StrictHostKeyChecking=no';
-            set net:max-retries 3;
-            set net:timeout 60;
-            set mirror:parallel-transfer-count 4;
-            open sftp://${SFTP_HOST};
-            mirror --reverse --delete --verbose \
-              --exclude ^\.git/ \
-              --exclude ^\.github/ \
-              --exclude ^\.claude/ \
-              --exclude ^\.env$ \
-              --exclude ^\.env\.dev$ \
-              --exclude ^\.env\.local$ \
-              --exclude ^tests/ \
-              --exclude ^var/ \
-              --exclude ^CLAUDE\.md$ \
-              --exclude ^README\.md$ \
-              ./ /spajxo.cz/;
-            quit;
-          "
+          cat > /tmp/lftp-deploy.sh <<'LFTP_SCRIPT'
+          set sftp:auto-confirm yes
+          set sftp:connect-program "ssh -o StrictHostKeyChecking=no"
+          set net:max-retries 3
+          set net:timeout 60
+          set mirror:parallel-transfer-count 4
+          LFTP_SCRIPT
+
+          # Append credentials (not in heredoc to allow variable expansion)
+          echo "open -u \"${SFTP_USER}\",\"${SFTP_PASS}\" sftp://${SFTP_HOST}" >> /tmp/lftp-deploy.sh
+
+          cat >> /tmp/lftp-deploy.sh <<'LFTP_MIRROR'
+          mirror --reverse --delete --verbose \
+            --exclude ^\.git/ \
+            --exclude ^\.github/ \
+            --exclude ^\.claude/ \
+            --exclude ^\.env$ \
+            --exclude ^\.env\.dev$ \
+            --exclude ^\.env\.local$ \
+            --exclude ^tests/ \
+            --exclude ^var/ \
+            --exclude ^CLAUDE\.md$ \
+            --exclude ^README\.md$ \
+            ./ /spajxo.cz/
+          quit
+          LFTP_MIRROR
+
+          lftp -f /tmp/lftp-deploy.sh
