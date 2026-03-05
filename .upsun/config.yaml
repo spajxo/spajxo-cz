@@ -1,15 +1,52 @@
 applications:
     spajxo-cz:
-        type: 'php:8.5'
+        type: 'php:8.4'
+
+        dependencies:
+            php:
+                composer/composer: "^2"
+
+        runtime:
+            extensions:
+                - apcu
+                - ctype
+                - iconv
+                - mbstring
+                - sodium
+                - intl
 
         web:
             locations:
                 "/":
                     root: "public"
                     passthru: "/index.php"
+                    expires: 1h
+                    allow: true
+                "/assets":
+                    root: "public/assets"
+                    expires: 1y
+                    passthru: false
+                    allow: true
+                "/favicon.ico":
+                    allow: true
+                    expires: 1w
 
         build:
             flavor: none
+
+        variables:
+            php:
+                opcache.preload: /app/config/preload.php
+                opcache.preload_user: "web"
+                opcache.memory_consumption: 256
+                opcache.max_accelerated_files: 20000
+                realpath_cache_size: 4096K
+                realpath_cache_ttl: 600
+                display_errors: "Off"
+                expose_php: "Off"
+                memory_limit: 256M
+                post_max_size: 16M
+                upload_max_filesize: 16M
 
         mounts:
             "/var": { source: "storage", source_path: "var" }
@@ -18,7 +55,7 @@ applications:
             build: |
                 set -e
                 export APP_ENV=prod
-                composer install --no-dev --optimize-autoloader --no-interaction
+                composer install --no-dev --optimize-autoloader --no-interaction --classmap-authoritative
                 php bin/console tailwind:build --minify
                 php bin/console asset-map:compile
             deploy: |
@@ -29,6 +66,11 @@ routes:
     "https://{default}/":
         type: upstream
         upstream: "spajxo-cz:http"
+        cache:
+            enabled: true
+            default_ttl: 600
+            cookies: ['/^sf_.*/']
+            headers: ['Accept', 'Accept-Language']
 
     "https://www.{default}/":
         type: redirect
