@@ -1,0 +1,64 @@
+<section class="space-y-8">
+    <div class="space-y-2">
+        <p class="font-mono text-sm text-primary tracking-wider uppercase">Co dělám</p>
+        <h2 class="text-3xl font-bold tracking-tight font-mono">Technologie & Skills</h2>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+        <twig:Card>
+            <twig:Card:Header>
+                <twig:Card:Title>Backend & API</twig:Card:Title>
+                <twig:Card:Description>Serverová strana a API design</twig:Card:Description>
+            </twig:Card:Header>
+            <twig:Card:Content>
+                <div class="flex flex-wrap gap-2">
+                    {% for skill in ['PHP', 'Symfony', 'Doctrine ORM', 'OpenAPI', 'PostgreSQL', 'Redis', 'Messenger'] %}
+                        <span class="rounded-md bg-secondary px-2.5 py-1 text-sm text-secondary-foreground">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </twig:Card:Content>
+        </twig:Card>
+
+        <twig:Card>
+            <twig:Card:Header>
+                <twig:Card:Title>Architektura & Platformy</twig:Card:Title>
+                <twig:Card:Description>Enterprise systémy a modernizace</twig:Card:Description>
+            </twig:Card:Header>
+            <twig:Card:Content>
+                <div class="flex flex-wrap gap-2">
+                    {% for skill in ['C4 Model', 'Microservices', 'OIDC / Zitadel', 'Backstage', 'Apicurio', 'ADR'] %}
+                        <span class="rounded-md bg-secondary px-2.5 py-1 text-sm text-secondary-foreground">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </twig:Card:Content>
+        </twig:Card>
+
+        <twig:Card>
+            <twig:Card:Header>
+                <twig:Card:Title>Infrastruktura & DevOps</twig:Card:Title>
+                <twig:Card:Description>Nasazení a automatizace</twig:Card:Description>
+            </twig:Card:Header>
+            <twig:Card:Content>
+                <div class="flex flex-wrap gap-2">
+                    {% for skill in ['Docker', 'GitLab CI', 'GitHub Actions', 'Upsun', 'GitOps', 'Linux'] %}
+                        <span class="rounded-md bg-secondary px-2.5 py-1 text-sm text-secondary-foreground">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </twig:Card:Content>
+        </twig:Card>
+
+        <twig:Card>
+            <twig:Card:Header>
+                <twig:Card:Title>Frontend & AI</twig:Card:Title>
+                <twig:Card:Description>UI, LLM integrace a nástroje</twig:Card:Description>
+            </twig:Card:Header>
+            <twig:Card:Content>
+                <div class="flex flex-wrap gap-2">
+                    {% for skill in ['TypeScript', 'Vue', 'React', 'Tailwind CSS', 'Claude API', 'Agentic AI'] %}
+                        <span class="rounded-md bg-secondary px-2.5 py-1 text-sm text-secondary-foreground">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </twig:Card:Content>
+        </twig:Card>
+    </div>
+</section>

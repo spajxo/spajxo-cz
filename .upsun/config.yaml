@@ -1,0 +1,29 @@
+applications:
+    spajxo-cz:
+        type: 'php:8.5'
+
+        web:
+            locations:
+                "/":
+                    root: "public"
+                    passthru: "/index.php"
+
+        build:
+            flavor: none
+
+        hooks:
+            build: |
+                set -e
+                symfony-build
+            deploy: |
+                set -e
+                symfony-deploy
+
+routes:
+    "https://{default}/":
+        type: upstream
+        upstream: "spajxo-cz:http"
+
+    "https://www.{default}/":
+        type: redirect
+        to: "https://{default}/"

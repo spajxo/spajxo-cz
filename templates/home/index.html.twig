@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}spajxo.cz - Full-stack Developer{% endblock %}
+
+{% block body %}
+    <main class="mx-auto max-w-4xl px-6 py-16 sm:py-24 space-y-32">
+        {% include 'home/_hero.html.twig' %}
+        {% include 'home/_skills.html.twig' %}
+        {% include 'home/_contact.html.twig' %}
+    </main>
+
+    <footer class="border-t border-border/40 py-8 text-center text-sm text-muted-foreground">
+        <div class="mx-auto max-w-4xl px-6">
+            &copy; {{ 'now'|date('Y') }} spajxo.cz
+        </div>
+    </footer>
+{% endblock %}
