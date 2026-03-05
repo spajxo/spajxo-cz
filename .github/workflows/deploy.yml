@@ -27,6 +27,8 @@ jobs:
       - run: php bin/console tailwind:build --minify
       - run: php bin/console asset-map:compile
 
+      - run: sudo apt-get install -y -qq lftp
+
       - name: Deploy via SFTP
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
