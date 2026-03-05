@@ -36,8 +36,8 @@ return [
 
         'before' => [
             'local: cp maintenance.html public/maintenance.flag',
-            'local: composer install --no-dev --classmap-authoritative --optimize-autoloader',
             'local: composer dump-env prod',
+            'local: composer install --no-dev --classmap-authoritative --optimize-autoloader',
             'local: php bin/console tailwind:build --minify',
             'local: php bin/console asset-map:compile',
         ],
