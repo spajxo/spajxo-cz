@@ -32,10 +32,8 @@ jobs:
       - name: Deploy via SFTP
         env:
           LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_HOST: ${{ secrets.FTP_HOST }}
-          FTP_USER: ${{ secrets.FTP_USER }}
         run: |
-          lftp -e "
+          lftp -u "${{ secrets.FTP_USER }}" -e "
             set sftp:auto-confirm yes;
             set net:max-retries 3;
             set net:timeout 30;
@@ -52,4 +50,4 @@ jobs:
               --exclude ^README\.md$ \
               ./ /spajxo.cz/;
             quit;
-          " "sftp://${FTP_USER}:${LFTP_PASSWORD}@${FTP_HOST}"
+          " "sftp://${{ secrets.FTP_HOST }}"
