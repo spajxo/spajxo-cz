@@ -33,9 +33,9 @@ jobs:
         env:
           SFTP_HOST: ${{ secrets.FTP_HOST }}
           SFTP_USER: ${{ secrets.FTP_USER }}
-          SFTP_PASS: ${{ secrets.FTP_PASSWORD }}
+          LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
-          lftp -u "${SFTP_USER}","${SFTP_PASS}" -e "
+          lftp -u "${SFTP_USER}" -e "
             set sftp:auto-confirm yes;
             set sftp:connect-program 'ssh -o StrictHostKeyChecking=no';
             set net:max-retries 3;
