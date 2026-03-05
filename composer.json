@@ -5,6 +5,7 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.4",
+        "dg/ftp-deployment": "^3.6.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "symfony/asset-mapper": "8.0.*",
@@ -76,7 +77,6 @@
         }
     },
     "require-dev": {
-        "dg/ftp-deployment": "^3.6",
         "symfony/ux-toolkit": "*"
     }
 }
