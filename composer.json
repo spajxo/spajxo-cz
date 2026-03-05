@@ -15,6 +15,7 @@
         "symfony/property-access": "8.0.*",
         "symfony/runtime": "8.0.*",
         "symfony/twig-bundle": "8.0.*",
+        "symfony/ux-twig-component": "^2.32",
         "symfony/yaml": "8.0.*",
         "symfonycasts/tailwind-bundle": "^0.12.0",
         "tales-from-a-dev/twig-tailwind-extra": "^1.0.0",
