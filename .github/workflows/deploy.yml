@@ -27,27 +27,24 @@ jobs:
       - run: php bin/console tailwind:build --minify
       - run: php bin/console asset-map:compile
 
-      - run: sudo apt-get install -y -qq lftp
+      - run: sudo apt-get install -y -qq sshpass
 
-      - name: Deploy via SFTP
+      - name: Deploy via rsync over SSH
         env:
-          LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          SSHPASS: ${{ secrets.FTP_PASSWORD }}
+          SSH_HOST: ${{ secrets.FTP_HOST }}
+          SSH_USER: ${{ secrets.FTP_USER }}
         run: |
-          lftp -u "${{ secrets.FTP_USER }}" -e "
-            set sftp:auto-confirm yes;
-            set net:max-retries 3;
-            set net:timeout 30;
-            mirror --reverse --delete --verbose \
-              --exclude ^\.git/ \
-              --exclude ^\.github/ \
-              --exclude ^\.claude/ \
-              --exclude ^\.env$ \
-              --exclude ^\.env\.dev$ \
-              --exclude ^\.env\.local$ \
-              --exclude ^tests/ \
-              --exclude ^var/ \
-              --exclude ^CLAUDE\.md$ \
-              --exclude ^README\.md$ \
-              ./ /spajxo.cz/;
-            quit;
-          " "sftp://${{ secrets.FTP_HOST }}"
+          sshpass -e rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no -p 22" \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.claude/' \
+            --exclude '.env' \
+            --exclude '.env.dev' \
+            --exclude '.env.local' \
+            --exclude 'tests/' \
+            --exclude 'var/' \
+            --exclude 'CLAUDE.md' \
+            --exclude 'README.md' \
+            ./ "${SSH_USER}@${SSH_HOST}:/spajxo.cz/"
