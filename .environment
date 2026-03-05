@@ -1,9 +1,0 @@
-# Set Symfony environment variables for Upsun
-export APP_ENV=prod
-export APP_DEBUG=0
-
-# Generate APP_SECRET from Upsun project entropy
-export APP_SECRET="${PLATFORM_PROJECT_ENTROPY}"
-
-# Set the default URI based on the Upsun route
-export DEFAULT_URI="/"

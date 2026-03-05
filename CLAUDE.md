@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Personal website (spajxo.cz) built with Symfony 8.0, Tailwind CSS v4, and deployed on Upsun (Platform.sh). No database, no API — static content rendered server-side with Twig.
+Personal website (spajxo.cz) built with Symfony 8.0, Tailwind CSS v4, and deployed on Active24 shared hosting. No database, no API — static content rendered server-side with Twig.
 
 ## Commands
 
@@ -37,12 +37,14 @@ php bin/console debug:router               # List all registered routes
 - **UX Toolkit** (`symfony/ux-toolkit`) is dev-only — provides component scaffolding, not used in production
 - **twig-tailwind-extra** provides `tw_merge()` for merging Tailwind classes in components
 
-## Deployment (Upsun)
+## Deployment (Active24)
 
-- Config: `.upsun/config.yaml` — PHP runtime, OPcache tuning, static asset caching, route cache
-- Runtime env: `.environment` — sets `APP_ENV=prod`, `APP_DEBUG=0`, generates `APP_SECRET` from `PLATFORM_PROJECT_ENTROPY`
-- GitHub integration: push to `main` triggers automatic deploy
-- Build hook runs: `composer install --no-dev`, `tailwind:build --minify`, `asset-map:compile`
+- Hosted on Active24 shared hosting (PHP 8.5), deployed via FTPS from GitHub Actions
+- Workflow: `.github/workflows/deploy.yml` — builds assets in CI, syncs to Active24 via FTPS
+- Push to `main` triggers: `composer install --no-dev`, `tailwind:build --minify`, `asset-map:compile`, then FTPS deploy
+- `composer dump-env prod` bakes `.env.local.php` with `APP_SECRET` from GitHub Secrets
+- Document root on Active24 set to `public/`
+- GitHub Secrets required: `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD`, `APP_SECRET`
 - `UXToolkitBundle` is registered for `dev`/`test` only — production builds must use `APP_ENV=prod` to avoid ClassNotFoundError
 
 ## Key Conventions
