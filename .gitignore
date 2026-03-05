@@ -16,3 +16,10 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+###> dg/ftp-deployment ###
+/deployment.log
+.htdeployment
+###< dg/ftp-deployment ###
+
+/public/maintenance.flag

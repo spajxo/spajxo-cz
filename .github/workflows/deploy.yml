@@ -3,6 +3,13 @@ name: Deploy
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Run in test mode (no actual upload)'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   deploy:
@@ -10,49 +17,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: shivammathur/setup-php@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
+          extensions: openssl, mbstring, ftp
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
 
       - name: Install dependencies
-        env:
-          APP_ENV: prod
-        run: composer install --no-dev --optimize-autoloader --classmap-authoritative
+        run: composer install --prefer-dist
 
-      - name: Dump env for production
+      - name: Deploy
         env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           APP_SECRET: ${{ secrets.APP_SECRET }}
-        run: composer dump-env prod
-
-      - run: php bin/console tailwind:build --minify
-      - run: php bin/console asset-map:compile
-
-      - name: Install lftp
-        run: sudo apt-get update && sudo apt-get install -y lftp
-
-      - name: Deploy via SFTP (lftp mirror)
-        env:
-          SFTP_HOST: ${{ secrets.FTP_HOST }}
-          SFTP_USER: ${{ secrets.FTP_USER }}
-          SFTP_PASS: ${{ secrets.FTP_PASSWORD }}
         run: |
-          lftp -c "
-            set sftp:auto-confirm yes;
-            set net:max-retries 3;
-            set net:reconnect-interval-base 5;
-            open sftp://$SFTP_USER:$SFTP_PASS@$SFTP_HOST;
-            mirror --reverse --delete --verbose \
-              --exclude='^\.git/' \
-              --exclude='^\.github/' \
-              --exclude='^\.claude/' \
-              --exclude='^\.env$' \
-              --exclude='^\.env\.dev$' \
-              --exclude='^\.env\.local$' \
-              --exclude='^tests/' \
-              --exclude='^var/' \
-              --exclude='^CLAUDE\.md$' \
-              --exclude='^README\.md$' \
-              --exclude='^logs/' \
-              --exclude='^sub/' \
-              ./ /
-          "
+          if [ "${{ inputs.test_mode }}" = "true" ]; then
+            php vendor/bin/deployment deployment.php --test
+          else
+            php vendor/bin/deployment deployment.php
+          fi
