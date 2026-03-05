@@ -52,7 +52,7 @@ return [
         ],
 
         'allowDelete' => true,
-        'filePermissions' => 0644,
-        'dirPermissions' => 0755,
+        'filePermissions' => '0644',
+        'dirPermissions' => '0755',
     ],
 ];
