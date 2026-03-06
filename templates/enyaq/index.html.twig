@@ -1,0 +1,117 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Enyaq Kalkulačka | spajxo.cz{% endblock %}
+
+{% block body %}
+    <main class="mx-auto max-w-4xl px-6 py-16 sm:py-24 space-y-16">
+        <section class="space-y-8">
+            <div class="space-y-2">
+                <p class="font-mono text-sm text-primary tracking-wider uppercase">Operativní leasing</p>
+                <h1 class="text-4xl sm:text-5xl font-bold tracking-tight font-mono">Enyaq<span class="text-primary">.</span></h1>
+                <p class="text-muted-foreground">22. 1. 2026 &ndash; 22. 1. 2031 &middot; 5 let &middot; 75 000 km</p>
+            </div>
+
+            <twig:Card class="border-primary/30">
+                <twig:Card:Content class="py-8">
+                    <div class="text-center space-y-2">
+                        <p class="font-mono text-sm text-primary tracking-wider uppercase">Měl bys mít najeto</p>
+                        <p class="text-5xl sm:text-6xl font-bold font-mono tracking-tight" id="expected-km">&ndash;</p>
+                        <p class="text-muted-foreground text-lg">kilometrů</p>
+                    </div>
+                </twig:Card:Content>
+            </twig:Card>
+        </section>
+
+        <section class="space-y-8">
+            <div class="space-y-2">
+                <p class="font-mono text-sm text-primary tracking-wider uppercase">Statistiky</p>
+                <h2 class="text-3xl font-bold tracking-tight font-mono">Přehled</h2>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <twig:Card>
+                    <twig:Card:Header>
+                        <twig:Card:Description>Dnešní datum</twig:Card:Description>
+                        <p class="text-2xl font-semibold font-mono tracking-tight" id="today-date">&ndash;</p>
+                    </twig:Card:Header>
+                </twig:Card>
+
+                <twig:Card>
+                    <twig:Card:Header>
+                        <twig:Card:Description>Dní od převzetí</twig:Card:Description>
+                        <p class="text-2xl font-semibold font-mono tracking-tight" id="days-elapsed">&ndash;</p>
+                    </twig:Card:Header>
+                </twig:Card>
+
+                <twig:Card>
+                    <twig:Card:Header>
+                        <twig:Card:Description>Dní do konce leasingu</twig:Card:Description>
+                        <p class="text-2xl font-semibold font-mono tracking-tight" id="days-remaining">&ndash;</p>
+                    </twig:Card:Header>
+                </twig:Card>
+
+                <twig:Card>
+                    <twig:Card:Header>
+                        <twig:Card:Description>Km zbývá do limitu</twig:Card:Description>
+                        <p class="text-2xl font-semibold font-mono tracking-tight" id="km-remaining">&ndash;</p>
+                    </twig:Card:Header>
+                </twig:Card>
+
+                <twig:Card>
+                    <twig:Card:Header>
+                        <twig:Card:Description>Denní průměr</twig:Card:Description>
+                        <p class="text-2xl font-semibold font-mono tracking-tight">~41 km/den</p>
+                    </twig:Card:Header>
+                </twig:Card>
+
+                <twig:Card>
+                    <twig:Card:Header>
+                        <twig:Card:Description>Roční limit</twig:Card:Description>
+                        <p class="text-2xl font-semibold font-mono tracking-tight">15 000 km</p>
+                    </twig:Card:Header>
+                </twig:Card>
+            </div>
+        </section>
+
+        <div class="text-center">
+            <twig:Button as="a" href="{{ path('home') }}" variant="outline">
+                &larr; Zpět na hlavní stránku
+            </twig:Button>
+        </div>
+    </main>
+
+    <footer class="border-t border-border/40 py-8 text-center text-sm text-muted-foreground">
+        <div class="mx-auto max-w-4xl px-6">
+            &copy; {{ 'now'|date('Y') }} spajxo.cz
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            const START = new Date(2026, 0, 22);
+            const END = new Date(2031, 0, 22);
+            const YEARLY_KM = 15000;
+            const TOTAL_KM = 75000;
+
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            const msPerDay = 86400000;
+            const daysElapsed = Math.max(0, Math.floor((today - START) / msPerDay));
+            const daysRemaining = Math.max(0, Math.floor((END - today) / msPerDay));
+
+            const yearsElapsed = daysElapsed / 365.25;
+            const expectedKm = Math.round(yearsElapsed * YEARLY_KM);
+            const kmRemaining = Math.max(0, TOTAL_KM - expectedKm);
+
+            const fmt = new Intl.NumberFormat('cs-CZ');
+
+            document.getElementById('today-date').textContent =
+                today.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+            document.getElementById('expected-km').textContent = fmt.format(expectedKm);
+            document.getElementById('days-elapsed').textContent = fmt.format(daysElapsed);
+            document.getElementById('days-remaining').textContent = fmt.format(daysRemaining);
+            document.getElementById('km-remaining').textContent = fmt.format(kmRemaining) + ' km';
+        })();
+    </script>
+{% endblock %}
