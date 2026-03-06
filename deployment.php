@@ -30,22 +30,17 @@ return [
             'phpunit*',
             'phpstan*',
             '.env',
+            '.env.local',
             'node_modules/*',
-            'maintenance.html',
             'importmap.php',
         ],
 
         'before' => [
-            'local: cp maintenance.html public/maintenance.flag',
+            'local: echo "APP_SECRET=${APP_SECRET}" > .env.local',
             'local: composer dump-env prod',
             'local: composer install --no-dev --classmap-authoritative --optimize-autoloader',
             'local: php bin/console tailwind:build --minify',
             'local: php bin/console asset-map:compile',
-        ],
-
-        'after' => [
-            sprintf('http://spajxo.cz/maintenance-off.php?token=%s', getenv('APP_SECRET')),
-            'local: rm -f public/maintenance.flag',
         ],
 
         'purge' => [
