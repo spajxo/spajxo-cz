@@ -5,9 +5,10 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.4",
-        "dg/ftp-deployment": "^3.6.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "dg/ftp-deployment": "^3.6.2",
+        "symfony/apache-pack": "*",
         "symfony/asset-mapper": "8.0.*",
         "symfony/console": "8.0.*",
         "symfony/dotenv": "8.0.*",
