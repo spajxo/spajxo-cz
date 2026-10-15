@@ -27,12 +27,12 @@ return [
             'var/log/*',
             'var/tailwind/*',
             'tests/*',
-            'phpunit*',
-            'phpstan*',
+            '/phpunit*',
+            '/phpstan*',
             '.env',
             '.env.local',
             'node_modules/*',
-            'importmap.php',
+            '/importmap.php',
         ],
 
         'before' => [
