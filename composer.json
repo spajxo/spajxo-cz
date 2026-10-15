@@ -7,22 +7,22 @@
         "php": ">=8.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "dg/ftp-deployment": "^3.6.2",
+        "dg/ftp-deployment": "^3.7.0",
         "symfony/apache-pack": "*",
         "symfony/asset-mapper": "8.0.*",
         "symfony/console": "8.0.*",
         "symfony/dotenv": "8.0.*",
-        "symfony/flex": "^2",
+        "symfony/flex": "^2.11",
         "symfony/framework-bundle": "8.0.*",
         "symfony/property-access": "8.0.*",
         "symfony/runtime": "8.0.*",
         "symfony/twig-bundle": "8.0.*",
-        "symfony/ux-twig-component": "^2.32",
+        "symfony/ux-twig-component": "^2.36",
         "symfony/yaml": "8.0.*",
         "symfonycasts/tailwind-bundle": "^0.12.0",
-        "tales-from-a-dev/twig-tailwind-extra": "^1.0.0",
-        "twig/extra-bundle": "^3.23",
-        "twig/html-extra": "^3.12.0"
+        "tales-from-a-dev/twig-tailwind-extra": "^1.5.0",
+        "twig/extra-bundle": "^3.29",
+        "twig/html-extra": "^3.29.0"
     },
     "config": {
         "allow-plugins": {
@@ -78,6 +78,6 @@
         }
     },
     "require-dev": {
-        "symfony/ux-toolkit": "*"
+        "symfony/ux-toolkit": ">=2.36.1"
     }
 }
