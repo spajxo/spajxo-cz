@@ -40,12 +40,13 @@ php bin/console debug:router               # List all registered routes
 ## Deployment
 
 - Hosted on shared hosting (PHP 8.5), deployed via `dg/ftp-deployment` (pseudo-atomic FTPS deploy)
-- Configuration: `deployment.php` in project root — PHP config with before/after hooks, ignore rules, and purge
+- Configuration: `deployment.php` in project root — PHP config with before hooks, ignore rules, and purge
 - Workflow: `.github/workflows/deploy.yml` — installs deps, runs `php vendor/bin/deployment deployment.php`
 - Push to `main` triggers deployment; `workflow_dispatch` supports `test_mode` for dry runs
-- Before hooks (run by deployment tool): `composer install --no-dev`, `composer dump-env prod`, `tailwind:build --minify`, `asset-map:compile`
+- Before hooks (run by deployment tool): write `APP_SECRET` to `.env.local`, `composer dump-env prod`, `composer install --no-dev`, `tailwind:build --minify`, `asset-map:compile`
 - Incremental sync via `.htdeployment` file (MD5 hashes), only changed files are uploaded
-- Maintenance mode: `public/index.php` checks for `maintenance.flag`; enabled before deploy, disabled via HTTP call to `maintenance-off.php` after deploy
+- No maintenance mode — removed because dg/ftp-deployment scans files before running hooks, so a flag created in a hook is never uploaded
+- No tests and no PR checks — the only workflow is the deploy on push to `main`
 - Document root set to `public/`
 - GitHub Secrets required: `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD`, `APP_SECRET`
 - `UXToolkitBundle` is registered for `dev`/`test` only — production builds must use `APP_ENV=prod` to avoid ClassNotFoundError
