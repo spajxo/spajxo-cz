@@ -17,7 +17,7 @@
         "symfony/property-access": "8.1.*",
         "symfony/runtime": "8.1.*",
         "symfony/twig-bundle": "8.1.*",
-        "symfony/ux-twig-component": "^2.36",
+        "symfony/ux-twig-component": "^3.6",
         "symfony/yaml": "8.1.*",
         "symfonycasts/tailwind-bundle": "^0.12.0",
         "tales-from-a-dev/twig-tailwind-extra": "^1.5.0",
@@ -78,6 +78,6 @@
         }
     },
     "require-dev": {
-        "symfony/ux-toolkit": ">=2.36.1"
+        "symfony/ux-toolkit": "^3.6"
     }
 }
