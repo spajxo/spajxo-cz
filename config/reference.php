@@ -744,7 +744,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     strict_mode?: bool|Param|null, // When enabled, an exception will be thrown if there are no built assets (default: false in `test` env, true otherwise) // Default: null
  * }
  * @psalm-type TwigComponentConfig = array{
- *     defaults?: array<string, Param|string|array{ // Default: ["__deprecated__use_old_naming_behavior"]
+ *     defaults?: array<string, Param|string|array{ // Default: []
  *         template_directory?: scalar|Param|null, // Default: "components"
  *         name_prefix?: scalar|Param|null, // Default: ""
  *     }>,
@@ -753,7 +753,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         enabled?: bool|Param, // Default: "%kernel.debug%"
  *         collect_components?: bool|Param, // Collect components instances // Default: true
  *     },
- *     controllers_json?: scalar|Param|null, // Deprecated: The "twig_component.controllers_json" config option is deprecated, and will be removed in 3.0. // Default: null
+ * }
+ * @psalm-type UxToolkitConfig = array{
+ *     preview?: bool|array{ // Wires the preview assets of kits into AssetMapper, Tailwind and the importmap.
+ *         enabled?: bool|Param, // Default: false
+ *         kits?: list<scalar|Param|null>,
+ *     },
  * }
  * @psalm-type TwigExtraConfig = array{
  *     cache?: bool|array{
@@ -825,6 +830,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         twig?: TwigConfig,
  *         symfonycasts_tailwind?: SymfonycastsTailwindConfig,
  *         twig_component?: TwigComponentConfig,
+ *         ux_toolkit?: UxToolkitConfig,
  *         twig_extra?: TwigExtraConfig,
  *         tales_from_a_dev_twig_extra_tailwind?: TalesFromADevTwigExtraTailwindConfig,
  *     },
@@ -847,6 +853,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         twig?: TwigConfig,
  *         symfonycasts_tailwind?: SymfonycastsTailwindConfig,
  *         twig_component?: TwigComponentConfig,
+ *         ux_toolkit?: UxToolkitConfig,
  *         twig_extra?: TwigExtraConfig,
  *         tales_from_a_dev_twig_extra_tailwind?: TalesFromADevTwigExtraTailwindConfig,
  *     },
