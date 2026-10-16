@@ -9,12 +9,12 @@
         }
     },
     "symfony/asset-mapper": {
-        "version": "8.0",
+        "version": "8.1",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
             "version": "6.4",
-            "ref": "5ad1308aa756d58f999ffbe1540d1189f5d7d14a"
+            "ref": "c01c47af2ec66a74ec046eccb919cfe27d3464ec"
         },
         "files": [
             "assets/app.js",
@@ -49,14 +49,16 @@
         ]
     },
     "symfony/framework-bundle": {
-        "version": "8.0",
+        "version": "8.1",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
-            "version": "7.4",
-            "ref": "09f6e081c763a206802674ce0cb34a022f0ffc6d"
+            "version": "8.1",
+            "ref": "d3714db4cc12adbfd4c0453cf854be32788ef549"
         },
         "files": [
+            ".editorconfig",
+            "AGENTS.md",
             "config/packages/cache.yaml",
             "config/packages/framework.yaml",
             "config/preload.php",
@@ -64,8 +66,7 @@
             "config/services.yaml",
             "public/index.php",
             "src/Controller/.gitignore",
-            "src/Kernel.php",
-            ".editorconfig"
+            "src/Kernel.php"
         ]
     },
     "symfony/property-info": {
@@ -122,16 +123,14 @@
         ]
     },
     "symfonycasts/tailwind-bundle": {
-        "version": "0.12",
+        "version": "1.0",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
-            "version": "0.8",
-            "ref": "d0bd0276f74de90adfaa4c6cd74cc0caacd77e0a"
+            "version": "0.14",
+            "ref": "b8af60cec7149fd0cde0ec9d89ccb32335c4d9bd"
         },
-        "files": [
-            "config/packages/symfonycasts_tailwind.yaml"
-        ]
+        "files": []
     },
     "tales-from-a-dev/twig-tailwind-extra": {
         "version": "1.1",
