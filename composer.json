@@ -9,16 +9,16 @@
         "ext-iconv": "*",
         "dg/ftp-deployment": "^3.7.0",
         "symfony/apache-pack": "*",
-        "symfony/asset-mapper": "8.0.*",
-        "symfony/console": "8.0.*",
-        "symfony/dotenv": "8.0.*",
+        "symfony/asset-mapper": "8.1.*",
+        "symfony/console": "8.1.*",
+        "symfony/dotenv": "8.1.*",
         "symfony/flex": "^2.11",
-        "symfony/framework-bundle": "8.0.*",
-        "symfony/property-access": "8.0.*",
-        "symfony/runtime": "8.0.*",
-        "symfony/twig-bundle": "8.0.*",
+        "symfony/framework-bundle": "8.1.*",
+        "symfony/property-access": "8.1.*",
+        "symfony/runtime": "8.1.*",
+        "symfony/twig-bundle": "8.1.*",
         "symfony/ux-twig-component": "^2.36",
-        "symfony/yaml": "8.0.*",
+        "symfony/yaml": "8.1.*",
         "symfonycasts/tailwind-bundle": "^0.12.0",
         "tales-from-a-dev/twig-tailwind-extra": "^1.5.0",
         "twig/extra-bundle": "^3.29",
@@ -74,7 +74,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "8.0.*"
+            "require": "8.1.*"
         }
     },
     "require-dev": {

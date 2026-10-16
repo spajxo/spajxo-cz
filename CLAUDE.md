@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Personal website (spajxo.cz) built with Symfony 8.0, Tailwind CSS v4, and deployed on shared hosting via FTPS. No database, no API — static content rendered server-side with Twig.
+Personal website (spajxo.cz) built with Symfony 8.1, Tailwind CSS v4, and deployed on shared hosting via FTPS. No database, no API — static content rendered server-side with Twig.
 
 ## Commands
 
@@ -30,7 +30,7 @@ php bin/console debug:router               # List all registered routes
 
 ## Architecture
 
-- **Symfony 8.0** with PHP 8.5, standard MVC structure
+- **Symfony 8.1** with PHP 8.5, standard MVC structure
 - **Tailwind CSS v4** via `symfonycasts/tailwind-bundle` (downloads binary automatically, no Node.js needed)
 - **AssetMapper** for frontend assets (no Webpack/Encore) — configured in `importmap.php`
 - **Twig Components** (`symfony/ux-twig-component`) for reusable UI pieces in `templates/components/`
