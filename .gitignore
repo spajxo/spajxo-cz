@@ -22,4 +22,5 @@
 .htdeployment
 ###< dg/ftp-deployment ###
 
+/maintenance.flag
 /public/maintenance.flag

@@ -44,3 +44,10 @@ jobs:
           else
             php vendor/bin/deployment deployment.php
           fi
+
+      - name: Check the site responds
+        if: ${{ inputs.test_mode != true }}
+        run: |
+          for path in / /enyaq; do
+            curl -fsS -o /dev/null --retry 3 --retry-delay 10 --retry-all-errors "https://spajxo.cz$path"
+          done

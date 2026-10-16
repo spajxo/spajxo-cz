@@ -33,6 +33,7 @@ return [
             '.env.local',
             'node_modules/*',
             '/importmap.php',
+            'maintenance.flag',
         ],
 
         'before' => [
@@ -41,6 +42,19 @@ return [
             'local: composer install --no-dev --classmap-authoritative --optimize-autoloader',
             'local: php bin/console tailwind:build --minify',
             'local: php bin/console asset-map:compile',
+            'local: touch maintenance.flag',
+        ],
+
+        // Requests hitting a half-renamed vendor/ can compile a broken container into var/cache,
+        // so keep the site in maintenance from before the renames until after the cache purge.
+        'afterUpload' => [
+            'upload: maintenance.flag public/maintenance.flag',
+        ],
+
+        // upload: paths are relative to the remote dir, remote: paths to the FTP root; they match
+        // only while the remote URL has no path.
+        'after' => [
+            'remote: unlink public/maintenance.flag',
         ],
 
         'purge' => [
