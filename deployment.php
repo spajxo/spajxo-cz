@@ -51,6 +51,8 @@ return [
             'upload: maintenance.flag public/maintenance.flag',
         ],
 
+        // upload: paths are relative to the remote dir, remote: paths to the FTP root; they match
+        // only while the remote URL has no path.
         'after' => [
             'remote: unlink public/maintenance.flag',
         ],
