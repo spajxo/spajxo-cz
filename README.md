@@ -1,6 +1,6 @@
 # spajxo.cz
 
-Personal website built with Symfony 8.0, Tailwind CSS v4, and deployed via FTPS from GitHub Actions.
+Personal website built with Symfony 8.1, Tailwind CSS v4, and deployed via FTPS from GitHub Actions.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ php bin/console tailwind:build --watch
 
 ## Stack
 
-- **Symfony 8.0** — PHP framework
+- **Symfony 8.1** — PHP framework
 - **Tailwind CSS v4** — utility-first CSS (via [TailwindBundle](https://github.com/symfonycasts/tailwind-bundle), no Node.js needed)
 - **AssetMapper** — native Symfony asset management (no Webpack)
 - **Twig Components** — reusable UI components
