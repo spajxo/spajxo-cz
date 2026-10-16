@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+
+      - name: Cache Composer
+        uses: actions/cache@v6
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install dependencies
+        run: |
+          composer validate --no-check-publish
+          composer install --prefer-dist
+
+      - name: Audit dependencies
+        run: composer audit
+
+      - name: Lint
+        run: |
+          php bin/console lint:container
+          php bin/console lint:twig templates
+          php bin/console lint:yaml config
+
+      # Same steps as the before-jobs in deployment.php, then render the pages in prod.
+      - name: Production build
+        run: |
+          echo "APP_SECRET=ci" > .env.local
+          composer dump-env prod
+          composer install --no-dev --classmap-authoritative --optimize-autoloader
+          php bin/console tailwind:build --minify
+          php bin/console asset-map:compile
+
+      - name: Smoke test
+        run: |
+          php -S 127.0.0.1:8000 -t public > /tmp/server.log 2>&1 &
+          sleep 2
+          check() {
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8000$1")
+            echo "$1 -> $code"
+            [ "$code" = "$2" ]
+          }
+          ok=0
+          check / 200 || ok=1
+          check /enyaq 200 || ok=1
+          check /does-not-exist 404 || ok=1
+          [ "$ok" = 0 ] || { cat /tmp/server.log; exit 1; }

@@ -21,6 +21,8 @@ return [
             'deployment.php',
             'deployment.log',
             'composer.json',
+            // Kernel::getProjectDir() walks up to the first composer.json, so the root one must be on the server.
+            '!/composer.json',
             'composer.lock',
             'symfony.lock',
             'var/cache/*',
