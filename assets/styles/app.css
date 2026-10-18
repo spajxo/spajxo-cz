@@ -3,6 +3,8 @@
 @theme {
     --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, monospace;
+    --font-display: var(--font-sans);
+    --font-typewriter: var(--font-mono);
 
     --color-background: oklch(0.13 0.01 240);
     --color-foreground: oklch(0.97 0.005 240);
@@ -24,6 +26,11 @@
 
     --color-destructive: oklch(0.577 0.245 27.325);
 
+    /* Used by the /losovani theme */
+    --color-coral: #e0675f;
+    --color-wood: #c9a072;
+    --color-wood-light: #e6caa2;
+
     --color-border: oklch(0.28 0.02 240);
     --color-input: oklch(0.28 0.02 240);
     --color-ring: oklch(0.72 0.14 220);
@@ -40,4 +47,31 @@ body {
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* /losovani: the look of the Verčinc výšivky Instagram (cream linen, sage, coral heart, typewriter). */
+.theme-vysivky {
+    --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+    --font-typewriter: "Special Elite", "Courier New", ui-monospace, monospace;
+
+    --color-background: #f6efe6;
+    --color-foreground: #4a3a33;
+    --color-card: #fffaf4;
+    --color-card-foreground: #4a3a33;
+    --color-primary: #7d9a78;
+    --color-primary-foreground: #ffffff;
+    --color-secondary: #ecdfcf;
+    --color-secondary-foreground: #4a3a33;
+    --color-muted: #ecdfcf;
+    --color-muted-foreground: #8a7468;
+    --color-accent: #ecdfcf;
+    --color-accent-foreground: #4a3a33;
+    --color-destructive: #d9534f;
+    --color-border: #e2d2bf;
+    --color-input: #e2d2bf;
+    --color-ring: #7d9a78;
+
+    background-image: radial-gradient(rgb(201 160 114 / 0.12) 1px, transparent 1px);
+    background-size: 6px 6px;
 }
