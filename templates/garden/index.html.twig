@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Garden | spajxo.cz{% endblock %}
+
+{% block meta %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block body %}
+    <main class="mx-auto max-w-2xl px-6 py-16 space-y-12">
+        <section class="text-center space-y-3">
+            <p class="font-mono text-sm text-primary tracking-wider uppercase" id="today">&ndash;</p>
+            <p class="text-6xl sm:text-7xl font-bold font-mono tracking-tight" id="verdict">&ndash;</p>
+            <p class="text-muted-foreground text-lg" id="reason">Načítám data o počasí&hellip;</p>
+            <p class="text-sm text-muted-foreground" id="dose" hidden>Dávka: konev (8 l) dešťovky na rostlinu, travinám polovina.</p>
+        </section>
+
+        <p class="rounded-lg border border-destructive px-4 py-3 text-center" id="frost" hidden></p>
+
+        <section class="space-y-4">
+            <h2 class="font-mono text-sm text-primary tracking-wider uppercase">Posledních 7 dní a výhled</h2>
+            <table class="w-full text-sm">
+                <thead class="text-muted-foreground">
+                    <tr class="border-b border-border/40">
+                        <th class="py-2 text-left font-normal">Den</th>
+                        <th class="py-2 text-right font-normal">Srážky</th>
+                        <th class="py-2 text-right font-normal">Výpar</th>
+                        <th class="py-2 text-right font-normal">Min. teplota</th>
+                    </tr>
+                </thead>
+                <tbody class="font-mono" id="days"></tbody>
+            </table>
+            <p class="text-xs text-muted-foreground">
+                Výpar je referenční evapotranspirace (ET0), tedy kolik vody za den odejde z půdy a rostlin.
+                Data: <a href="https://open-meteo.com" class="underline underline-offset-4">Open-Meteo</a>, poloha přibližná.
+            </p>
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            // Rounded to 0.1° (about 10 km) on purpose.
+            const LAT = 50.0;
+            const LON = 15.8;
+            const PAST_DAYS = 7;
+            const WATER_THRESHOLD_MM = 5;
+            const RAIN_SOON_MM = 5;
+
+            const url = 'https://api.open-meteo.com/v1/forecast'
+                + `?latitude=${LAT}&longitude=${LON}`
+                + '&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_min'
+                + `&past_days=${PAST_DAYS}&forecast_days=3&timezone=Europe%2FPrague`;
+
+            const number = new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 1 });
+            const mm = (value) => number.format(value) + ' mm';
+            const celsius = (value) => number.format(value) + ' °C';
+            const day = (iso, options) => new Intl.DateTimeFormat('cs-CZ', options).format(new Date(iso + 'T12:00:00'));
+            const sum = (values) => values.reduce((total, value) => total + (value ?? 0), 0);
+            const $ = (id) => document.getElementById(id);
+
+            fetch(url)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+
+                    return response.json();
+                })
+                .then(({ daily }) => {
+                    const rain = daily.precipitation_sum;
+                    const et0 = daily.et0_fao_evapotranspiration;
+                    const minTemp = daily.temperature_2m_min;
+                    const today = PAST_DAYS;
+
+                    const pastRain = sum(rain.slice(0, today));
+                    const pastEt0 = sum(et0.slice(0, today));
+                    const rainSoon = sum(rain.slice(today, today + 2));
+                    const deficit = pastEt0 - pastRain;
+
+                    let verdict = 'Nezalévat';
+                    let reason = `Za týden napršelo ${mm(pastRain)}, výpar ${mm(pastEt0)}.`;
+                    if (deficit > WATER_THRESHOLD_MM && rainSoon >= RAIN_SOON_MM) {
+                        verdict = 'Počkat';
+                        reason += ` Chybí vláha, ale dnes a zítra má napršet ${mm(rainSoon)}.`;
+                    } else if (deficit > WATER_THRESHOLD_MM) {
+                        verdict = 'Zalít';
+                        reason += rainSoon > 0 ? ` Dnes a zítra jen ${mm(rainSoon)} deště.` : ' Déšť se nečeká.';
+                    } else {
+                        reason += ' Vláhy je dost.';
+                    }
+
+                    $('today').textContent = day(daily.time[today], { weekday: 'long', day: 'numeric', month: 'long' });
+                    $('verdict').textContent = verdict;
+                    $('verdict').classList.toggle('text-primary', verdict === 'Zalít');
+                    $('reason').textContent = reason;
+                    $('dose').hidden = verdict !== 'Zalít';
+
+                    const frost = daily.time
+                        .map((iso, i) => ({ iso, min: minTemp[i] }))
+                        .slice(today)
+                        .filter(({ min }) => min !== null && min <= 2);
+                    if (frost.length > 0) {
+                        const coldest = frost.reduce((a, b) => (b.min < a.min ? b : a));
+                        const label = coldest.min <= 0 ? 'Mráz' : 'Přízemní mrazík';
+                        $('frost').textContent = `${label}: ${day(coldest.iso, { weekday: 'long' })} až ${celsius(coldest.min)}. `
+                            + 'Schovat muškáty a eukalyptus, zakrýt citlivé rostliny.';
+                        $('frost').hidden = false;
+                    }
+
+                    $('days').innerHTML = '';
+                    daily.time.forEach((iso, i) => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b border-border/20' + (i === today ? ' text-primary' : i > today ? ' text-muted-foreground' : '');
+                        [
+                            i === today ? 'dnes' : day(iso, { weekday: 'short', day: 'numeric', month: 'numeric' }),
+                            mm(rain[i] ?? 0),
+                            mm(et0[i] ?? 0),
+                            minTemp[i] === null ? '–' : celsius(minTemp[i]),
+                        ].forEach((text, column) => {
+                            const cell = document.createElement('td');
+                            cell.className = 'py-2' + (column > 0 ? ' text-right' : '');
+                            cell.textContent = text;
+                            row.appendChild(cell);
+                        });
+                        $('days').appendChild(row);
+                    });
+                })
+                .catch(() => {
+                    $('verdict').textContent = '?';
+                    $('reason').textContent = 'Data o počasí se nepodařilo načíst. Zkuste to prosím později.';
+                });
+        })();
+    </script>
+{% endblock %}

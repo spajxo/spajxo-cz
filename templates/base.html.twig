@@ -6,6 +6,7 @@
         <title>{% block title %}spajxo.cz{% endblock %}</title>
         {% set description = 'Pavel Stejskal, systémový architekt v Digital Solutions. Modernizace enterprise systémů, event-driven architektura, observabilita a AI ve vývoji.' %}
         <meta name="description" content="{{ description }}">
+        {% block meta %}{% endblock %}
         <link rel="canonical" href="{{ app.request.schemeAndHttpHost ~ app.request.pathInfo }}">
         <meta property="og:type" content="website">
         <meta property="og:locale" content="cs_CZ">
