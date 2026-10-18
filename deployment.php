@@ -41,6 +41,8 @@ return [
         'before' => [
             'local: echo "APP_SECRET=${APP_SECRET}" > .env.local',
             'local: echo "APP_REVISION=${GITHUB_SHA}" >> .env.local',
+            'local: echo "INSTAGRAM_APP_ID=${INSTAGRAM_APP_ID}" >> .env.local',
+            'local: echo "INSTAGRAM_APP_SECRET=${INSTAGRAM_APP_SECRET}" >> .env.local',
             'local: composer dump-env prod',
             'local: composer install --no-dev --classmap-authoritative --optimize-autoloader',
             'local: php bin/console tailwind:build --minify',
