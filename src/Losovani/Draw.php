@@ -21,6 +21,7 @@ class Draw
         $entries = [];
         $valid = [];
         $seen = [];
+        $tagged = [];
 
         // Comments keep the pasted order, so with one entry per user the first comment counts.
         foreach ($post->comments as $comment) {
@@ -33,11 +34,14 @@ class Draw
                 '' !== $criteria->keyword && false === mb_stripos($comment->text, $criteria->keyword) => 'chybí „'.$criteria->keyword.'“',
                 count($mentions) < $criteria->minMentions => sprintf('označení: %d z %d', count($mentions), $criteria->minMentions),
                 $criteria->onePerUser && isset($seen[$username]) => 'další komentář stejného účtu',
+                // With an entry per comment, tagging the same people again does not earn another entry.
+                [] !== $mentions && isset($tagged[$comment->key()]) => 'stejná označení jako dřív',
                 default => null,
             };
 
             if (null === $reason) {
                 $seen[$username] = true;
+                $tagged[$comment->key()] = true;
                 $valid[] = $comment;
             }
             $entries[] = ['comment' => $comment, 'reason' => $reason];

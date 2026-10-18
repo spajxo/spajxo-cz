@@ -16,6 +16,21 @@ class Comment
     }
 
     /**
+     * Identifies the same comment transcribed from two screenshots: the account plus the people it tags.
+     * The text itself is not compared because Claude may read a cut-off or emoji-heavy comment differently
+     * each time; a comment without tags falls back to the start of its text.
+     */
+    public function key(): string
+    {
+        $mentions = $this->mentions();
+        sort($mentions);
+
+        return strtolower($this->username).'|'.([] !== $mentions
+            ? implode(',', $mentions)
+            : mb_substr(preg_replace('/[^\p{L}\p{N}]+/u', '', mb_strtolower($this->text)), 0, 20));
+    }
+
+    /**
      * Distinct @handles in the text, lowercased.
      *
      * @return list<string>

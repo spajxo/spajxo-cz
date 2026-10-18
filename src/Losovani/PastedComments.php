@@ -22,8 +22,8 @@ class PastedComments
         @uzivatelske_jmeno | text komentáře
 
         Pravidla:
-        - Každý screenshot začni řádkem „# číslo“ podle pořadí, v jakém jsou screenshoty nahrané, a pod něj vypiš VŠECHNY komentáře, které jsou na něm vidět, shora dolů.
-        - Nic neslučuj a neodstraňuj duplicity. Když je stejný komentář na dvou screenshotech, vypiš ho u obou. Když stejný člověk napsal dva stejné komentáře, vypiš oba.
+        - Každý screenshot začni řádkem „# číslo“ podle pořadí, v jakém jsou screenshoty nahrané, a pod něj vypiš VŠECHNY komentáře, které jsou na něm vidět, shora dolů. Řádky „# číslo“ nevynechávej: podle nich se pozná překryv mezi screenshoty.
+        - Nic neslučuj a neodstraňuj duplicity. Komentář, který je dole na jednom screenshotu a znovu nahoře na dalším, vypiš u obou; opakování se odstraní automaticky. Když stejný člověk napsal dva stejné komentáře, vypiš oba.
         - Jeden komentář = jeden řádek. Víceřádkový komentář spoj do jednoho řádku mezerami.
         - Uživatelské jméno opiš přesně znak po znaku, včetně teček, podtržítek a číslic. Bez ověřovací značky a bez textu „Autor“.
         - Text komentáře opiš doslova včetně všech @označení a emoji.
@@ -70,14 +70,19 @@ class PastedComments
 
         $comments = [];
         $screenshots = [];
+        $repeats = 0;
         $previous = [];
         foreach ($groups as $number => $group) {
-            $overlap = self::overlap($previous, $group);
-            $kept = array_slice($group, $overlap);
-            array_push($comments, ...$kept);
-            if (0 !== $number) {
+            if (0 === $number) {
+                // Without "# N" lines the screenshot borders are unknown: drop runs that repeat right away.
+                [$kept, $overlap] = self::withoutImmediateRepeats($group);
+            } else {
+                $overlap = self::overlap($previous, $group);
+                $kept = array_slice($group, $overlap);
                 $screenshots[] = ['number' => $number, 'comments' => count($kept), 'overlap' => $overlap];
             }
+            array_push($comments, ...$kept);
+            $repeats += $overlap;
             $previous = $group;
         }
 
@@ -85,7 +90,7 @@ class PastedComments
             throw new \InvalidArgumentException('Ve vloženém textu jsem nenašel žádný komentář ve tvaru „@jméno | text“.');
         }
 
-        return new Post($comments, $skipped, $screenshots);
+        return new Post($comments, $skipped, $screenshots, $repeats);
     }
 
     /**
@@ -96,9 +101,8 @@ class PastedComments
      */
     private static function overlap(array $previous, array $next): int
     {
-        $key = static fn (Comment $comment) => strtolower($comment->username).'|'.mb_strtolower(preg_replace('/\s+/u', ' ', $comment->text));
-        $tail = array_map($key, $previous);
-        $head = array_map($key, $next);
+        $tail = array_map(static fn (Comment $comment) => $comment->key(), $previous);
+        $head = array_map(static fn (Comment $comment) => $comment->key(), $next);
 
         for ($size = min(count($tail), count($head)); $size > 0; --$size) {
             if (array_slice($tail, -$size) === array_slice($head, 0, $size)) {
@@ -107,5 +111,30 @@ class PastedComments
         }
 
         return 0;
+    }
+
+    /**
+     * Drops every run of comments that directly repeats the run before it (A B A B → A B, A A → A).
+     *
+     * @param list<Comment> $comments
+     *
+     * @return array{list<Comment>, int} the kept comments and how many were dropped
+     */
+    private static function withoutImmediateRepeats(array $comments): array
+    {
+        $kept = [];
+        $dropped = 0;
+        for ($i = 0, $count = count($comments); $i < $count; ++$i) {
+            $rest = array_slice($comments, $i);
+            $overlap = self::overlap($kept, $rest);
+            if ($overlap > 0) {
+                $dropped += $overlap;
+                $i += $overlap - 1;
+                continue;
+            }
+            $kept[] = $comments[$i];
+        }
+
+        return [$kept, $dropped];
     }
 }
