@@ -18,9 +18,9 @@
     <main class="mx-auto max-w-2xl px-4 sm:px-6 py-12 space-y-10">
         <header class="text-center space-y-3">
             <img src="{{ asset('images/vercinc-vysivky-logo.webp') }}" alt="Verčinc výšivky" width="128" height="128"
-                class="mx-auto size-32 rounded-full bg-white p-1 ring-2 ring-wood-light shadow-sm">
-            <h1 class="font-typewriter text-4xl sm:text-5xl">Losování výherců</h1>
-            <p class="text-muted-foreground">Vyšijeme to poctivě, stejně jako losování 🧵</p>
+                class="mx-auto {{ result ? 'size-20' : 'size-32' }} rounded-full bg-white p-1 ring-2 ring-wood-light shadow-sm">
+            <h1 class="font-typewriter {{ result ? 'text-3xl' : 'text-4xl sm:text-5xl' }}">Losování výherců</h1>
+            {% if not result %}<p class="text-muted-foreground">Vyšijeme to poctivě, stejně jako losování 🧵</p>{% endif %}
             {% if account %}
                 <form method="post" action="{{ path('losovani_logout') }}" class="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                     <span>Přihlášeno: <strong class="text-foreground">@{{ account }}</strong></span>
@@ -45,7 +45,8 @@
                 <twig:Button as="a" href="{{ path('losovani_login') }}" size="lg" class="rounded-full px-8 text-base">Přihlásit přes Instagram</twig:Button>
             </section>
         {% else %}
-            <form method="post" action="{{ path('losovani') }}" id="draw-form" class="rounded-3xl bg-card p-6 sm:p-8 shadow-sm space-y-6">
+            {% set draw_form %}
+            <form method="post" action="{{ path('losovani') }}" id="draw-form" class="{{ result ? 'px-6 pb-6 sm:px-8 sm:pb-8' : 'rounded-3xl bg-card p-6 sm:p-8 shadow-sm' }} space-y-6">
                 <label class="block space-y-2">
                     <span class="{{ label }}">Odkaz na příspěvek</span>
                     <input type="url" name="url" value="{{ form.url ?? '' }}" placeholder="https://www.instagram.com/p/…" class="{{ input }}" {{ sample ? '' : 'required' }}>
@@ -90,6 +91,8 @@
                     <twig:Button type="submit" size="lg" class="rounded-full px-10 text-base">Losovat ♥</twig:Button>
                 </div>
             </form>
+            {% endset %}
+            {% if not result %}{{ draw_form }}{% endif %}
         {% endif %}
 
         {% if error %}
@@ -124,6 +127,26 @@
                     <twig:Button type="button" size="lg" id="reveal" class="rounded-full px-10 text-base" hidden>Odhalit výherce ♥</twig:Button>
                 </div>
 
+                <div class="flex flex-wrap justify-center gap-3">
+                    <twig:Button type="submit" form="draw-form" variant="outline" class="rounded-full px-6">↻ Losovat znovu</twig:Button>
+                    <twig:Button as="a" href="{{ path('losovani') }}" variant="ghost" class="rounded-full px-6">Nové losování</twig:Button>
+                </div>
+
+                {% set criteria = result.criteria %}
+                {% set rules = [
+                    criteria.keyword ? 'obsahuje „' ~ criteria.keyword ~ '“',
+                    criteria.minMentions > 0 ? 'min. ' ~ criteria.minMentions ~ ' označení',
+                    criteria.deadline ? 'do ' ~ criteria.deadline|date('j. n. H:i', 'Europe/Prague'),
+                    criteria.onePerUser ? '1 los na účet' : 'los za každý komentář',
+                    criteria.includeReplies ? 'i odpovědi',
+                    criteria.excluded ? 'vyřazeno: @' ~ criteria.excluded|join(', @'),
+                ]|filter(rule => rule) %}
+                <ul class="flex flex-wrap justify-center gap-2 text-sm" aria-label="Pravidla losování">
+                    {% for rule in rules %}
+                        <li class="rounded-full border border-dashed border-wood bg-card px-3 py-1">{{ rule }}</li>
+                    {% endfor %}
+                </ul>
+
                 {# Story-highlight style circles. #}
                 <div class="flex justify-center gap-5 sm:gap-8">
                     {% for stat in [
@@ -145,9 +168,20 @@
                     <a href="{{ result.post.permalink }}" class="underline underline-offset-4">@{{ result.post.owner }}</a>.
                 </p>
 
-                <div class="rounded-3xl bg-card p-4 sm:p-6 shadow-sm">
-                    <h2 class="font-typewriter text-lg mb-4">Všechny komentáře</h2>
-                    <ul class="divide-y divide-dashed divide-border">
+                <details class="group rounded-3xl bg-card shadow-sm">
+                    <summary class="flex cursor-pointer list-none items-center justify-between px-6 py-4 font-typewriter text-lg [&::-webkit-details-marker]:hidden">
+                        Upravit pravidla
+                        <span class="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
+                    </summary>
+                    {{ draw_form }}
+                </details>
+
+                <details class="group rounded-3xl bg-card shadow-sm">
+                    <summary class="flex cursor-pointer list-none items-center justify-between px-6 py-4 font-typewriter text-lg [&::-webkit-details-marker]:hidden">
+                        Všechny komentáře ({{ result.entries|length }})
+                        <span class="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
+                    </summary>
+                    <ul class="divide-y divide-dashed divide-border px-4 pb-4 sm:px-6 sm:pb-6">
                         {% for entry in result.entries %}
                             <li class="flex gap-3 py-3 {{ entry.reason ? 'opacity-60' }}">
                                 <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs {{ entry.reason ? 'bg-muted' : 'bg-primary text-primary-foreground' }}">{{ entry.reason ? '–' : '✓' }}</span>
@@ -161,7 +195,7 @@
                             </li>
                         {% endfor %}
                     </ul>
-                </div>
+                </details>
             </section>
         {% endif %}
     </main>
