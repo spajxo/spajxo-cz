@@ -25,7 +25,9 @@ class Draw
 
         // The API returns newest first; with one entry per user the first comment counts.
         $comments = $post->comments;
-        usort($comments, static fn (Comment $a, Comment $b) => $a->timestamp <=> $b->timestamp);
+        if ($post->hasTimestamps) {
+            usort($comments, static fn (Comment $a, Comment $b) => $a->timestamp <=> $b->timestamp);
+        }
 
         foreach ($comments as $comment) {
             $username = strtolower($comment->username);
@@ -35,7 +37,7 @@ class Draw
                 $username === $owner => 'autor příspěvku',
                 in_array($username, $criteria->excluded, true) => 'vyřazený účet',
                 $comment->isReply && !$criteria->includeReplies => 'odpověď na komentář',
-                null !== $criteria->deadline && $comment->timestamp > $criteria->deadline => 'po uzávěrce',
+                $post->hasTimestamps && null !== $criteria->deadline && $comment->timestamp > $criteria->deadline => 'po uzávěrce',
                 '' !== $criteria->keyword && false === mb_stripos($comment->text, $criteria->keyword) => 'chybí „'.$criteria->keyword.'“',
                 count($mentions) < $criteria->minMentions => sprintf('označení: %d z %d', count($mentions), $criteria->minMentions),
                 $criteria->onePerUser && isset($seen[$username]) => 'další komentář stejného účtu',

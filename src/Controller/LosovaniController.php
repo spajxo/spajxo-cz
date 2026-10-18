@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Losovani\Criteria;
 use App\Losovani\Draw;
 use App\Losovani\InstagramClient;
+use App\Losovani\PastedComments;
 use App\Losovani\SamplePost;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -39,9 +40,11 @@ class LosovaniController extends AbstractController
 
         if ($request->isMethod('POST')) {
             try {
+                $pasted = 'instagram' !== $request->request->getString('source', 'paste');
                 $post = match (true) {
+                    !$sample && null === $account => throw new \InvalidArgumentException('Přihlášení vypršelo, přihlaste se prosím znovu.'),
+                    $pasted => PastedComments::parse($request->request->getString('pasted'), $account['username'] ?? 'ukazkovy_ucet'),
                     $sample => SamplePost::create(),
-                    null === $account => throw new \InvalidArgumentException('Přihlášení vypršelo, přihlaste se prosím znovu.'),
                     default => $this->instagram->post($request->request->getString('url'), $account['token']),
                 };
                 $criteria = Criteria::fromRequest($request);
@@ -64,6 +67,7 @@ class LosovaniController extends AbstractController
             'submitted' => $request->isMethod('POST'),
             'result' => $result,
             'error' => $error,
+            'prompt' => PastedComments::PROMPT,
         ]));
     }
 

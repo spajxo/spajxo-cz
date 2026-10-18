@@ -15,6 +15,10 @@ class Post
         public readonly bool $isSample = false,
         // comments_count as Instagram reports it (includes replies), to spot comments the API did not return
         public readonly ?int $expectedComments = null,
+        // false for pasted comments: they keep their order but carry no real time
+        public readonly bool $hasTimestamps = true,
+        /** @var list<string> lines of pasted text that are not a comment */
+        public readonly array $skippedLines = [],
     ) {
     }
 }

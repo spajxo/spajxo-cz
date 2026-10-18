@@ -9,6 +9,8 @@ class Comment
         public readonly string $text,
         public readonly \DateTimeImmutable $timestamp,
         public readonly bool $isReply = false,
+        // marked [nejisté] when transcribed from a screenshot
+        public readonly bool $uncertain = false,
     ) {
     }
 
