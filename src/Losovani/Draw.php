@@ -18,26 +18,18 @@ class Draw
      */
     public function run(Post $post, Criteria $criteria): array
     {
-        $owner = strtolower($post->owner);
         $entries = [];
         $valid = [];
         $seen = [];
 
-        // The API returns newest first; with one entry per user the first comment counts.
-        $comments = $post->comments;
-        if ($post->hasTimestamps) {
-            usort($comments, static fn (Comment $a, Comment $b) => $a->timestamp <=> $b->timestamp);
-        }
-
-        foreach ($comments as $comment) {
+        // Comments keep the pasted order, so with one entry per user the first comment counts.
+        foreach ($post->comments as $comment) {
             $username = strtolower($comment->username);
-            $mentions = array_diff($comment->mentions(), [$username, $owner]);
+            $mentions = array_diff($comment->mentions(), [$username, ...$criteria->excluded]);
 
             $reason = match (true) {
-                $username === $owner => 'autor příspěvku',
                 in_array($username, $criteria->excluded, true) => 'vyřazený účet',
                 $comment->isReply && !$criteria->includeReplies => 'odpověď na komentář',
-                $post->hasTimestamps && null !== $criteria->deadline && $comment->timestamp > $criteria->deadline => 'po uzávěrce',
                 '' !== $criteria->keyword && false === mb_stripos($comment->text, $criteria->keyword) => 'chybí „'.$criteria->keyword.'“',
                 count($mentions) < $criteria->minMentions => sprintf('označení: %d z %d', count($mentions), $criteria->minMentions),
                 $criteria->onePerUser && isset($seen[$username]) => 'další komentář stejného účtu',

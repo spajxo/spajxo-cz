@@ -27,12 +27,10 @@ class PastedComments
 
     private const string LINE = '~^(?<reply>↳|>|└)?\s*@?(?<username>[A-Za-z0-9._]{1,30})\s*[|│¦:]\s*(?<text>.*?)\s*(?<uncertain>\[nejist[ée]\])?$~u';
 
-    public static function parse(string $text, string $owner): Post
+    public static function parse(string $text): Post
     {
         $comments = [];
         $skipped = [];
-        // Pasted comments have no real time; keep their order with one-second steps.
-        $time = new \DateTimeImmutable('2000-01-01');
 
         foreach (preg_split('/\R/u', $text) as $line) {
             $line = trim($line);
@@ -46,7 +44,6 @@ class PastedComments
             $comments[] = new Comment(
                 $match['username'],
                 $match['text'],
-                $time = $time->modify('+1 second'),
                 isReply: '' !== $match['reply'],
                 uncertain: '' !== ($match['uncertain'] ?? ''),
             );
@@ -56,6 +53,6 @@ class PastedComments
             throw new \InvalidArgumentException('Ve vloženém textu jsem nenašel žádný komentář ve tvaru „@jméno | text“.');
         }
 
-        return new Post($owner, '', null, $comments, hasTimestamps: false, skippedLines: $skipped);
+        return new Post($comments, $skipped);
     }
 }

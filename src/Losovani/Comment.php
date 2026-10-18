@@ -7,7 +7,6 @@ class Comment
     public function __construct(
         public readonly string $username,
         public readonly string $text,
-        public readonly \DateTimeImmutable $timestamp,
         public readonly bool $isReply = false,
         // marked [nejisté] when transcribed from a screenshot
         public readonly bool $uncertain = false,
