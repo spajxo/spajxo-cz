@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% set messages = {
+    403: ['Přístup odepřen', 'Na tuhle stránku nemáte přístup.'],
+    404: ['Stránka nenalezena', 'Tahle stránka neexistuje, nebo se přestěhovala.'],
+    405: ['Nepodporovaná metoda', 'Tenhle požadavek stránka neumí zpracovat.'],
+    500: ['Něco se pokazilo', 'Na serveru nastala chyba. Zkuste to prosím za chvíli.'],
+    503: ['Probíhá údržba', 'Web se právě aktualizuje. Zkuste to prosím za pár minut.'],
+} %}
+{% set message = messages[status_code] ?? [status_text, 'Při zpracování požadavku nastala chyba.'] %}
+
+{% block title %}{{ status_code }} {{ message[0] }} | spajxo.cz{% endblock %}
+
+{% block body %}
+    <main class="flex min-h-[80vh] items-center justify-center px-6">
+        <div class="text-center space-y-6">
+            <p class="text-7xl sm:text-9xl font-bold font-mono tracking-tight">{{ status_code }}<span class="-ml-[0.15em] text-primary">.</span></p>
+            <div class="space-y-2">
+                <h1 class="text-2xl font-bold tracking-tight">{{ message[0] }}</h1>
+                <p class="text-muted-foreground">{{ message[1] }}</p>
+            </div>
+            <twig:Button as="a" href="{{ path('home') }}" variant="outline">
+                Zpět na spajxo.cz
+            </twig:Button>
+        </div>
+    </main>
+{% endblock %}
