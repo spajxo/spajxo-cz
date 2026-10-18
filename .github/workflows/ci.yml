@@ -56,6 +56,8 @@ jobs:
           ok=0
           check / 200 || ok=1
           check /enyaq 200 || ok=1
+          check /garden 200 || ok=1
+          curl -s http://127.0.0.1:8000/garden | grep -qF '<meta name="robots" content="noindex, nofollow">' || { echo "garden noindex missing"; ok=1; }
           check /does-not-exist 404 || ok=1
           curl -s http://127.0.0.1:8000/ | grep -qF '<meta name="revision" content="ci-revision">' || { echo "revision meta missing"; ok=1; }
           curl -s http://127.0.0.1:8000/does-not-exist | grep -qF 'Stránka nenalezena' || { echo "custom 404 page missing"; ok=1; }
