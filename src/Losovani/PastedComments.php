@@ -28,7 +28,7 @@ class PastedComments
         - Jeden komentář = jeden řádek. Víceřádkový komentář spoj do jednoho řádku mezerami.
         - Uživatelské jméno opiš přesně znak po znaku, včetně teček, podtržítek a číslic. Bez ověřovací značky a bez textu „Autor“.
         - Text komentáře opiš doslova včetně všech @označení a emoji.
-        - Odpověď na jiný komentář (je pod ním odsazená) začni znakem ↳, například: ↳ @uzivatelske_jmeno | text odpovědi
+        - Odpověď na jiný komentář (je pod ním odsazená) začni znakem ↳, například: ↳ @uzivatelske_jmeno | text odpovědi. Pokud si nejsi jistý, že jde o odpověď (třeba u komentáře useknutého nahoře na screenshotu), ↳ nepiš.
         - Komentář useknutý na horním nebo dolním okraji screenshotu vypiš, jen když je vidět celé jméno i celý text.
         - Vynech popisek příspěvku, časy (např. „2 d“), počty To se mi líbí, „Odpovědět“, „Zobrazit odpovědi“ a „Zobrazit překlad“.
         - Pokud jméno nebo text nejde spolehlivě přečíst, přidej na konec řádku [nejisté].
@@ -94,6 +94,11 @@ class PastedComments
                     $position = $matches[$before];
                     if (self::completeness($comment) > self::completeness($comments[$position])) {
                         $comments[$position] = $comment;
+                    }
+                    // A real reply is indented on every screenshot; a comment cut off at the top of one
+                    // can look indented, so when the copies disagree it is a top-level comment.
+                    if ($comment->isReply !== $comments[$position]->isReply) {
+                        $comments[$position] = $comments[$position]->asTopLevel();
                     }
                     ++$dropped;
                     continue;

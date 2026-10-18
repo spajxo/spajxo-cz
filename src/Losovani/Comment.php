@@ -15,6 +15,11 @@ class Comment
     ) {
     }
 
+    public function asTopLevel(): self
+    {
+        return new self($this->username, $this->text, false, $this->uncertain, $this->screenshot);
+    }
+
     /**
      * Identifies the same comment transcribed from two screenshots: the account plus the people it tags.
      * The text itself is not compared because Claude may read a cut-off or emoji-heavy comment differently
