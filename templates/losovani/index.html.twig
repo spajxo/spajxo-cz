@@ -1,0 +1,141 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Losování | spajxo.cz{% endblock %}
+
+{% block meta %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% set input = 'w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50' %}
+
+{% block body %}
+    <main class="mx-auto max-w-3xl px-6 py-16 space-y-12">
+        <header class="flex flex-wrap items-end justify-between gap-4">
+            <div class="space-y-2">
+                <p class="font-mono text-sm text-primary tracking-wider uppercase">Instagram</p>
+                <h1 class="text-3xl font-bold tracking-tight font-mono">Losování</h1>
+            </div>
+            {% if account %}
+                <form method="post" action="{{ path('losovani_logout') }}" class="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span>Přihlášen jako <span class="font-mono text-foreground">@{{ account }}</span></span>
+                    <twig:Button type="submit" variant="ghost" size="sm">Odhlásit</twig:Button>
+                </form>
+            {% endif %}
+        </header>
+
+        {% for message in app.flashes('error') %}
+            <p class="rounded-lg border border-destructive px-4 py-3">{{ message }}</p>
+        {% endfor %}
+
+        {% if sample %}
+            <p class="rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground">
+                Instagram aplikace zatím není nastavená, losuje se z <strong class="text-foreground">ukázkových komentářů</strong>.
+                Odkaz na příspěvek se ignoruje.
+            </p>
+        {% endif %}
+
+        {% if not sample and not account %}
+            <section class="space-y-4 text-center">
+                <p class="text-muted-foreground">Pro načtení komentářů se přihlaste účtem, pod kterým je soutěžní příspěvek.</p>
+                <twig:Button as="a" href="{{ path('losovani_login') }}" size="lg">Přihlásit přes Instagram</twig:Button>
+            </section>
+        {% else %}
+            <form method="post" action="{{ path('losovani') }}" class="space-y-6">
+                <label class="block space-y-2">
+                    <span class="text-sm font-medium">Odkaz na příspěvek</span>
+                    <input type="url" name="url" value="{{ form.url ?? '' }}" placeholder="https://www.instagram.com/p/…" class="{{ input }}" {{ sample ? '' : 'required' }}>
+                </label>
+
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <label class="block space-y-2">
+                        <span class="text-sm font-medium">Komentář musí obsahovat</span>
+                        <input type="text" name="keyword" value="{{ form.keyword ?? '' }}" placeholder="slovo nebo #hashtag (nepovinné)" class="{{ input }}">
+                    </label>
+                    <label class="block space-y-2">
+                        <span class="text-sm font-medium">Minimálně označených účtů</span>
+                        <input type="number" name="min_mentions" min="0" max="20" value="{{ form.min_mentions ?? 0 }}" class="{{ input }}">
+                    </label>
+                    <label class="block space-y-2">
+                        <span class="text-sm font-medium">Uzávěrka</span>
+                        <input type="datetime-local" name="deadline" value="{{ form.deadline ?? '' }}" class="{{ input }}">
+                    </label>
+                    <label class="block space-y-2">
+                        <span class="text-sm font-medium">Počet výherců</span>
+                        <input type="number" name="winners" min="1" max="50" value="{{ form.winners ?? 1 }}" class="{{ input }}">
+                    </label>
+                </div>
+
+                <label class="block space-y-2">
+                    <span class="text-sm font-medium">Vyřadit účty</span>
+                    <input type="text" name="excluded" value="{{ form.excluded ?? '' }}" placeholder="@ucet1, @ucet2 (nepovinné)" class="{{ input }}">
+                </label>
+
+                <div class="space-y-2 text-sm">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="one_per_user" value="1" {{ (submitted ? form.one_per_user is defined : true) ? 'checked' }}>
+                        Jeden los na účet (platí první vyhovující komentář)
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="include_replies" value="1" {{ form.include_replies is defined ? 'checked' }}>
+                        Počítat i odpovědi na komentáře
+                    </label>
+                </div>
+
+                <twig:Button type="submit" size="lg">Losovat</twig:Button>
+            </form>
+        {% endif %}
+
+        {% if error %}
+            <p class="rounded-lg border border-destructive px-4 py-3">{{ error }}</p>
+        {% endif %}
+
+        {% if result %}
+            <section class="space-y-6">
+                <div class="space-y-2">
+                    <p class="font-mono text-sm text-primary tracking-wider uppercase">
+                        {{ result.winners|length > 1 ? 'Výherci' : 'Výherce' }}
+                    </p>
+                    {% for winner in result.winners %}
+                        <div class="rounded-lg border border-primary px-4 py-3">
+                            <p class="text-2xl font-bold font-mono">@{{ winner.username }}</p>
+                            <p class="text-sm text-muted-foreground">{{ winner.text }}</p>
+                        </div>
+                    {% else %}
+                        <p class="text-muted-foreground">Žádný komentář nesplňuje kritéria.</p>
+                    {% endfor %}
+                </div>
+
+                <p class="text-sm text-muted-foreground">
+                    Vylosováno {{ result.drawnAt|date('j. n. Y H:i:s') }} z {{ result.valid|length }}
+                    {{ result.valid|length == 1 ? 'platného losu' : 'platných losů' }}
+                    ({{ result.participants|length }} účtů, {{ result.entries|length }} komentářů celkem).
+                    Příspěvek <a href="{{ result.post.permalink }}" class="underline underline-offset-4">@{{ result.post.owner }}</a>.
+                </p>
+
+                <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="text-muted-foreground">
+                        <tr class="border-b border-border/40">
+                            <th class="py-2 pr-4 text-left font-normal">Účet</th>
+                            <th class="py-2 pr-4 text-left font-normal">Komentář</th>
+                            <th class="py-2 text-left font-normal">Stav</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in result.entries %}
+                            <tr class="border-b border-border/20 align-top {{ entry.reason ? 'text-muted-foreground' }}">
+                                <td class="py-2 pr-4 font-mono break-all sm:break-normal sm:whitespace-nowrap">@{{ entry.comment.username }}</td>
+                                <td class="py-2 pr-4">
+                                    {{ entry.comment.text }}
+                                    <span class="block text-xs text-muted-foreground">
+                                        {{ entry.comment.timestamp|date('j. n. H:i', 'Europe/Prague') }}{{ entry.comment.isReply ? ' · odpověď' }}
+                                    </span>
+                                </td>
+                                <td class="py-2 sm:whitespace-nowrap {{ entry.reason ? '' : 'text-primary' }}">{{ entry.reason ?? 'platný' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </section>
+        {% endif %}
+    </main>
+{% endblock %}
