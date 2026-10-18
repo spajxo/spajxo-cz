@@ -28,7 +28,7 @@
             <div class="space-y-3">
                 <label class="block space-y-2">
                     <span class="{{ label }}">Komentáře</span>
-                    <textarea name="pasted" rows="6" required placeholder="@jmeno | text komentáře&#10;↳ @jmeno | odpověď" class="{{ input }} font-mono text-sm">{{ form.pasted ?? '' }}</textarea>
+                    <textarea name="pasted" rows="6" required placeholder="# 1&#10;@jmeno | text komentáře&#10;↳ @jmeno | odpověď" class="{{ input }} font-mono text-sm">{{ form.pasted ?? '' }}</textarea>
                 </label>
                 <details class="group rounded-2xl border border-dashed border-wood px-4 py-3 text-sm">
                     <summary class="flex cursor-pointer list-none items-center justify-between font-semibold [&::-webkit-details-marker]:hidden">
@@ -53,6 +53,11 @@
                 <label class="block space-y-2">
                     <span class="{{ label }}">Označit aspoň přátel</span>
                     <input type="number" name="min_mentions" min="0" max="20" value="{{ form.min_mentions ?? 0 }}" class="{{ input }}">
+                </label>
+                <label class="block space-y-2">
+                    <span class="{{ label }}">Počet komentářů na Instagramu</span>
+                    <input type="number" name="expected" min="0" inputmode="numeric" value="{{ form.expected ?? '' }}" placeholder="nepovinné" class="{{ input }}">
+                    <span class="block text-xs text-muted-foreground">Číslo u bublinky pod příspěvkem. Zkontroluju, že Claude žádný komentář nevynechal.</span>
                 </label>
                 <label class="block space-y-2">
                     <span class="{{ label }}">Počet výherců</span>
@@ -89,6 +94,31 @@
         {% endif %}
 
         {% if result %}
+            {# Transcription check: the count Instagram shows vs. the pasted comments, per screenshot. #}
+            {% set pasted = result.entries|length %}
+            {% if result.expected or result.post.screenshots|length > 1 %}
+                {% set matches = result.expected is null or result.expected == pasted %}
+                <div class="rounded-2xl border-2 border-dashed {{ matches ? 'border-primary' : 'border-coral' }} bg-card px-5 py-3 text-sm space-y-2">
+                    {% if result.expected is null %}
+                        <p>Přepsáno {{ pasted }} komentářů.</p>
+                    {% elseif matches %}
+                        <p><strong>Sedí ✓</strong> Přepsáno {{ pasted }} z {{ result.expected }} komentářů.</p>
+                    {% else %}
+                        <p>
+                            <strong>Nesedí:</strong> Instagram ukazuje {{ result.expected }} komentářů, přepsáno {{ pasted }}
+                            ({{ pasted < result.expected ? 'chybí ' ~ (result.expected - pasted) : 'navíc ' ~ (pasted - result.expected) }}).
+                            Instagram do počtu někdy započítá i skryté nebo smazané komentáře.
+                        </p>
+                    {% endif %}
+                    {% if result.post.screenshots|length > 1 %}
+                        <ul class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground" aria-label="Komentáře po screenshotech">
+                            {% for shot in result.post.screenshots %}
+                                <li>screenshot {{ shot.number }}: {{ shot.comments }}{{ shot.overlap ? ' (' ~ shot.overlap ~ ' z předchozího vynecháno)' }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endif %}
             {% if result.post.skippedLines %}
                 <div class="rounded-2xl border-2 border-dashed border-coral bg-card px-5 py-3 text-sm space-y-2">
                     <p>{{ result.post.skippedLines|length }} {{ result.post.skippedLines|length == 1 ? 'řádek není' : 'řádků není' }} ve tvaru „@jméno | text“ a do losování se nedostal:</p>
@@ -166,7 +196,7 @@
                 </div>
 
                 <p class="text-center text-sm text-muted-foreground">
-                    Vylosováno {{ result.drawnAt|date('j. n. Y, H:i:s') }} z {{ result.entries|length }} vložených komentářů.
+                    Vylosováno {{ result.drawnAt|date('j. n. Y, H:i:s') }} z {{ pasted }} vložených komentářů.
                 </p>
 
                 <details class="group rounded-3xl bg-card shadow-sm">
@@ -189,7 +219,7 @@
                                 <div class="min-w-0 flex-1">
                                     <p class="break-words"><strong>@{{ entry.comment.username }}</strong> {{ entry.comment.text }}</p>
                                     <p class="text-xs text-muted-foreground">
-                                        {{ entry.comment.isReply ? 'odpověď · ' }}{{ entry.comment.uncertain ? '⚠ nejistý přepis · ' }}<span class="{{ entry.reason ? 'text-coral' : 'text-primary' }}">{{ entry.reason ?? 'v losování' }}</span>
+                                        {{ entry.comment.screenshot ? 'screenshot ' ~ entry.comment.screenshot ~ ' · ' }}{{ entry.comment.isReply ? 'odpověď · ' }}{{ entry.comment.uncertain ? '⚠ nejistý přepis · ' }}<span class="{{ entry.reason ? 'text-coral' : 'text-primary' }}">{{ entry.reason ?? 'v losování' }}</span>
                                     </p>
                                 </div>
                             </li>
