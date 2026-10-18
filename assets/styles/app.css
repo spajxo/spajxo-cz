@@ -27,7 +27,7 @@
     --color-destructive: oklch(0.577 0.245 27.325);
 
     /* Used by the /losovani theme */
-    --color-coral: #e0675f;
+    --color-coral: #c47662;
     --color-wood: #c9a072;
     --color-wood-light: #e6caa2;
 
@@ -49,7 +49,7 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* /losovani: the look of the Verčinc výšivky Instagram (cream linen, sage, coral heart, typewriter). */
+/* /losovani: the look of the Verčinc výšivky Instagram and logo (cream linen, sage, dusty rose, typewriter). */
 .theme-vysivky {
     --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
     --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;

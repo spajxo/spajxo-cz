@@ -11,35 +11,14 @@
 {% block html_class %}{% endblock %}
 {% block body_class %}theme-vysivky{% endblock %}
 
-{# Embroidery hoop with a cross-stitched heart, like the "Jak si objednat výšivku?" post. #}
-{% macro hoop(size) %}
-    {% set heart = ['.XX.XX.', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...'] %}
-    <svg viewBox="0 0 120 128" width="{{ size }}" height="{{ size * 128 / 120 }}" aria-hidden="true">
-        <rect x="53" y="0" width="14" height="12" rx="3" class="fill-wood"/>
-        <circle cx="60" cy="68" r="55" class="fill-none stroke-wood" stroke-width="8"/>
-        <circle cx="60" cy="68" r="49" class="fill-card stroke-wood-light" stroke-width="3"/>
-        <g class="stroke-coral" stroke-width="1.6" stroke-linecap="round">
-            {% for row, line in heart %}
-                {% for column in 0..6 %}
-                    {% if line[column:1] == 'X' %}
-                        {% set x = 39 + column * 6 %}{% set y = 50 + row * 6 %}
-                        <path d="M{{ x + 1 }} {{ y + 1 }}l4 4m0 -4l-4 4"/>
-                    {% endif %}
-                {% endfor %}
-            {% endfor %}
-        </g>
-        <circle cx="60" cy="68" r="38" class="fill-none stroke-primary" stroke-width="1.2" stroke-dasharray="3 4"/>
-    </svg>
-{% endmacro %}
-
 {% set input = 'w-full rounded-xl border border-border bg-card px-4 py-2.5 text-base placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50' %}
 {% set label = 'font-typewriter text-sm' %}
 
 {% block body %}
     <main class="mx-auto max-w-2xl px-4 sm:px-6 py-12 space-y-10">
         <header class="text-center space-y-3">
-            <div class="flex justify-center">{{ _self.hoop(96) }}</div>
-            <p class="font-display text-lg tracking-[0.3em] uppercase text-muted-foreground">Verčinc výšivky</p>
+            <img src="{{ asset('images/vercinc-vysivky-logo.webp') }}" alt="Verčinc výšivky" width="128" height="128"
+                class="mx-auto size-32 rounded-full bg-white p-1 ring-2 ring-wood-light shadow-sm">
             <h1 class="font-typewriter text-4xl sm:text-5xl">Losování výherců</h1>
             <p class="text-muted-foreground">Vyšijeme to poctivě, stejně jako losování 🧵</p>
             {% if account %}

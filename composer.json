@@ -9,6 +9,7 @@
         "ext-iconv": "*",
         "dg/ftp-deployment": "^3.7.0",
         "symfony/apache-pack": "*",
+        "symfony/asset": "8.1.*",
         "symfony/asset-mapper": "8.1.*",
         "symfony/console": "8.1.*",
         "symfony/dotenv": "8.1.*",
