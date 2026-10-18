@@ -3,6 +3,7 @@
 namespace App\Losovani;
 
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -69,12 +70,12 @@ class InstagramClient
      */
     public function post(string $url, string $token): Post
     {
-        if (!preg_match('~instagram\.com/(?:[^/]+/)?(?:p|reel|tv)/([A-Za-z0-9_-]+)~', $url, $match)) {
+        if (!preg_match('~instagram\.com/(?:[^/?#]+/)?(?:p|reels?|tv)/([A-Za-z0-9_-]+)~', $url, $match)) {
             throw new \InvalidArgumentException('Tohle nevypadá jako odkaz na příspěvek na Instagramu.');
         }
 
         $media = null;
-        foreach ($this->pages('/me/media', $token, ['fields' => 'id,shortcode,permalink,caption', 'limit' => 50]) as $item) {
+        foreach ($this->pages('/me/media', $token, ['fields' => 'id,shortcode,permalink,caption,comments_count', 'limit' => 50]) as $item) {
             if ($item['shortcode'] === $match[1]) {
                 $media = $item;
                 break;
@@ -93,7 +94,17 @@ class InstagramClient
             }
         }
 
-        return new Post($this->username($token), $media['permalink'], $media['caption'] ?? null, $comments);
+        return new Post($this->username($token), $media['permalink'], $media['caption'] ?? null, $comments, expectedComments: $media['comments_count'] ?? null);
+    }
+
+    /**
+     * Instagram's own error text from a failed request, e.g. "(#10) Application does not have permission for this action".
+     */
+    public static function errorMessage(HttpExceptionInterface $exception): string
+    {
+        $data = json_decode($exception->getResponse()->getContent(false), true);
+
+        return $data['error']['message'] ?? $data['error_message'] ?? $exception->getMessage();
     }
 
     /**

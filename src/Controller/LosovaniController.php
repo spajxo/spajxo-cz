@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 
 /**
  * Giveaway draw over the comments of an Instagram post. Access is the Instagram login itself:
@@ -46,6 +47,8 @@ class LosovaniController extends AbstractController
                 $result = ['post' => $post] + $this->draw->run($post, Criteria::fromRequest($request));
             } catch (\InvalidArgumentException $exception) {
                 $error = $exception->getMessage();
+            } catch (HttpExceptionInterface $exception) {
+                $error = 'Instagram odpověděl chybou: '.InstagramClient::errorMessage($exception);
             } catch (ExceptionInterface) {
                 $error = 'Instagram odpověděl chybou. Zkuste to prosím znovu, případně se přihlaste znovu.';
             } catch (\Exception) {
@@ -84,7 +87,8 @@ class LosovaniController extends AbstractController
         $code = $request->query->getString('code');
 
         if ('' === $code || null === $state || !hash_equals($state, $request->query->getString('state'))) {
-            $this->addFlash('error', 'Přihlášení přes Instagram se nepodařilo.');
+            $reason = $request->query->getString('error_description');
+            $this->addFlash('error', 'Přihlášení přes Instagram se nepodařilo.'.('' !== $reason ? ' Instagram: '.$reason : ''));
 
             return $this->redirectToRoute('losovani');
         }
@@ -98,6 +102,8 @@ class LosovaniController extends AbstractController
                 'username' => $this->instagram->username($token),
                 'expires' => time() + 3300,
             ]);
+        } catch (HttpExceptionInterface $exception) {
+            $this->addFlash('error', 'Přihlášení přes Instagram se nepodařilo. Instagram: '.InstagramClient::errorMessage($exception));
         } catch (ExceptionInterface) {
             $this->addFlash('error', 'Přihlášení přes Instagram se nepodařilo.');
         }
