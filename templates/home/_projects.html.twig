@@ -1,0 +1,45 @@
+<section class="space-y-8">
+    <div class="space-y-2">
+        <p class="font-mono text-sm text-primary tracking-wider uppercase">Na čem pracuji</p>
+        <h2 class="text-3xl font-bold tracking-tight font-mono">Modernizace ekosystému M&amp;M Reality</h2>
+    </div>
+
+    <p class="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+        Realitní, hypoteční a aukční platformy, přes 25 propojených systémů. Cílem je postupně
+        snižovat technický dluh bez velkého třesku: nové věci stavět vedle, integrovat na hranici
+        a rozhodnutí zapisovat jako ADR.
+    </p>
+
+    <div class="grid gap-4 sm:grid-cols-3">
+        <twig:Card>
+            <twig:Card:Header>
+                <twig:Card:Title>Event-driven architektura</twig:Card:Title>
+            </twig:Card:Header>
+            <twig:Card:Content class="text-muted-foreground leading-relaxed">
+                Centrální event bus na RabbitMQ se standardem CloudEvents a registrem schémat.
+                Systémy si přestávají sahat do databází a začínají si posílat události.
+                Zpětná kompatibilita je pravidlo, ne doporučení.
+            </twig:Card:Content>
+        </twig:Card>
+
+        <twig:Card>
+            <twig:Card:Header>
+                <twig:Card:Title>Observabilita</twig:Card:Title>
+            </twig:Card:Header>
+            <twig:Card:Content class="text-muted-foreground leading-relaxed">
+                Jednotný logovací standard napříč systémy, aby šlo dohledat, co se stalo,
+                i když požadavek projde pěti službami.
+            </twig:Card:Content>
+        </twig:Card>
+
+        <twig:Card>
+            <twig:Card:Header>
+                <twig:Card:Title>Identity &amp; přístupy</twig:Card:Title>
+            </twig:Card:Header>
+            <twig:Card:Content class="text-muted-foreground leading-relaxed">
+                Centrální správa identit zaměstnanců na ZITADELu: jedno přihlášení,
+                role na jednom místě, konfigurace verzovaná v gitu.
+            </twig:Card:Content>
+        </twig:Card>
+    </div>
+</section>
