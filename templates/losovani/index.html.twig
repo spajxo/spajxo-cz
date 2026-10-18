@@ -94,45 +94,7 @@
         {% endif %}
 
         {% if result %}
-            {# Transcription check: the count Instagram shows vs. the pasted comments, per screenshot. #}
             {% set pasted = result.entries|length %}
-            {% if result.expected or result.post.screenshots|length > 1 %}
-                {% set matches = result.expected is null or result.expected == pasted %}
-                <div class="rounded-2xl border-2 border-dashed {{ matches ? 'border-primary' : 'border-coral' }} bg-card px-5 py-3 text-sm space-y-2">
-                    {% if result.expected is null %}
-                        <p>Přepsáno {{ pasted }} komentářů.</p>
-                    {% elseif matches %}
-                        <p><strong>Sedí ✓</strong> Přepsáno {{ pasted }} z {{ result.expected }} komentářů.</p>
-                    {% else %}
-                        <p>
-                            <strong>Nesedí:</strong> Instagram ukazuje {{ result.expected }} komentářů, přepsáno {{ pasted }}
-                            ({{ pasted < result.expected ? 'chybí ' ~ (result.expected - pasted) : 'navíc ' ~ (pasted - result.expected) }}).
-                            Instagram do počtu někdy započítá i skryté nebo smazané komentáře.
-                        </p>
-                    {% endif %}
-                    {% if result.post.screenshots|length > 1 %}
-                        <ul class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground" aria-label="Komentáře po screenshotech">
-                            {% for shot in result.post.screenshots %}
-                                <li>screenshot {{ shot.number }}: {{ shot.comments }}{{ shot.overlap ? ' (' ~ shot.overlap ~ ' z předchozího vynecháno)' }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-            {% endif %}
-            {% if result.post.skippedLines %}
-                <div class="rounded-2xl border-2 border-dashed border-coral bg-card px-5 py-3 text-sm space-y-2">
-                    <p>{{ result.post.skippedLines|length }} {{ result.post.skippedLines|length == 1 ? 'řádek není' : 'řádků není' }} ve tvaru „@jméno | text“ a do losování se nedostal:</p>
-                    <ul class="list-disc pl-5 font-mono text-xs text-muted-foreground">
-                        {% for line in result.post.skippedLines|slice(0, 10) %}<li class="break-all">{{ line }}</li>{% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
-            {% set uncertain = result.entries|filter(e => e.comment.uncertain)|length %}
-            {% if uncertain %}
-                <p class="rounded-2xl border-2 border-dashed border-wood bg-card px-5 py-3 text-center text-sm">
-                    Claude u {{ uncertain }} {{ uncertain == 1 ? 'komentáře' : 'komentářů' }} nebyl jistý přepisem. Jsou označené v seznamu komentářů, zkontroluj je se screenshoty.
-                </p>
-            {% endif %}
             <section class="space-y-10">
                 {# Phones: one big hoop for a single winner, two smaller ones per row for several. #}
                 {% set several = result.winners|length > 1 %}
@@ -198,6 +160,51 @@
                 <p class="text-center text-sm text-muted-foreground">
                     Vylosováno {{ result.drawnAt|date('j. n. Y, H:i:s') }} z {{ pasted }} vložených komentářů.
                 </p>
+
+                {# Kept collapsed with a neutral title: the result screen gets filmed, the check is for before or after. #}
+                <details class="group rounded-3xl bg-card shadow-sm">
+                    <summary class="flex cursor-pointer list-none items-center justify-between px-6 py-4 font-typewriter text-lg [&::-webkit-details-marker]:hidden">
+                        Kontrola přepisu
+                        <span class="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
+                    </summary>
+                    <div class="space-y-3 px-4 pb-4 sm:px-6 sm:pb-6">
+                        {% set matches = result.expected is null or result.expected == pasted %}
+                        <div class="rounded-2xl border-2 border-dashed {{ matches ? 'border-primary' : 'border-coral' }} bg-card px-5 py-3 text-sm space-y-2">
+                            {% if result.expected is null %}
+                                <p>Přepsáno {{ pasted }} komentářů.</p>
+                            {% elseif matches %}
+                                <p><strong>Sedí ✓</strong> Přepsáno {{ pasted }} z {{ result.expected }} komentářů.</p>
+                            {% else %}
+                                <p>
+                                    <strong>Nesedí:</strong> Instagram ukazuje {{ result.expected }} komentářů, přepsáno {{ pasted }}
+                                    ({{ pasted < result.expected ? 'chybí ' ~ (result.expected - pasted) : 'navíc ' ~ (pasted - result.expected) }}).
+                                    Instagram do počtu někdy započítá i skryté nebo smazané komentáře.
+                                </p>
+                            {% endif %}
+                            {% if result.post.screenshots|length > 1 %}
+                                <ul class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground" aria-label="Komentáře po screenshotech">
+                                    {% for shot in result.post.screenshots %}
+                                        <li>screenshot {{ shot.number }}: {{ shot.comments }}{{ shot.overlap ? ' (' ~ shot.overlap ~ ' z předchozího vynecháno)' }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    {% if result.post.skippedLines %}
+                        <div class="rounded-2xl border-2 border-dashed border-coral bg-card px-5 py-3 text-sm space-y-2">
+                            <p>{{ result.post.skippedLines|length }} {{ result.post.skippedLines|length == 1 ? 'řádek není' : 'řádků není' }} ve tvaru „@jméno | text“ a do losování se nedostal:</p>
+                            <ul class="list-disc pl-5 font-mono text-xs text-muted-foreground">
+                                {% for line in result.post.skippedLines|slice(0, 10) %}<li class="break-all">{{ line }}</li>{% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    {% set uncertain = result.entries|filter(e => e.comment.uncertain)|length %}
+                    {% if uncertain %}
+                        <p class="rounded-2xl border-2 border-dashed border-wood bg-card px-5 py-3 text-center text-sm">
+                            Claude u {{ uncertain }} {{ uncertain == 1 ? 'komentáře' : 'komentářů' }} nebyl jistý přepisem. Jsou označené v seznamu komentářů, zkontroluj je se screenshoty.
+                        </p>
+                    {% endif %}
+                    </div>
+                </details>
 
                 <details class="group rounded-3xl bg-card shadow-sm">
                     <summary class="flex cursor-pointer list-none items-center justify-between px-6 py-4 font-typewriter text-lg [&::-webkit-details-marker]:hidden">
