@@ -48,8 +48,6 @@ jobs:
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           APP_SECRET: ${{ secrets.APP_SECRET }}
-          INSTAGRAM_APP_ID: ${{ secrets.INSTAGRAM_APP_ID }}
-          INSTAGRAM_APP_SECRET: ${{ secrets.INSTAGRAM_APP_SECRET }}
         run: |
           if [ "${{ inputs.test_mode }}" = "true" ]; then
             php vendor/bin/deployment deployment.php --test

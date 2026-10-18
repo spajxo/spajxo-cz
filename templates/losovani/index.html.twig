@@ -21,125 +21,74 @@
                 class="mx-auto {{ result ? 'size-20' : 'size-32' }} rounded-full bg-white p-1 ring-2 ring-wood-light shadow-sm">
             <h1 class="font-typewriter {{ result ? 'text-3xl' : 'text-4xl sm:text-5xl' }}">Losování výherců</h1>
             {% if not result %}<p class="text-muted-foreground">Vyšijeme to poctivě, stejně jako losování 🧵</p>{% endif %}
-            {% if account %}
-                <form method="post" action="{{ path('losovani_logout') }}" class="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                    <span>Přihlášeno: <strong class="text-foreground">@{{ account }}</strong></span>
-                    <twig:Button type="submit" variant="link" size="sm" class="text-coral">odhlásit</twig:Button>
-                </form>
-            {% endif %}
         </header>
 
-        {% for message in app.flashes('error') %}
-            <p class="rounded-2xl border-2 border-dashed border-coral bg-card px-5 py-3 text-center">{{ message }}</p>
-        {% endfor %}
-
-        {% if sample %}
-            <p class="rounded-2xl border-2 border-dashed border-primary bg-card px-5 py-3 text-center text-sm">
-                Instagram zatím není připojený. Vložené komentáře fungují normálně, odkaz na příspěvek losuje z <strong>ukázkových komentářů</strong>.
-            </p>
-        {% endif %}
-
-        {% if not sample and not account %}
-            <section class="rounded-3xl bg-card px-6 py-10 text-center shadow-sm space-y-5">
-                <p class="text-lg">Pro načtení komentářů se přihlas účtem, pod kterým je soutěžní příspěvek.</p>
-                <twig:Button as="a" href="{{ path('losovani_login') }}" size="lg" class="rounded-full px-8 text-base">Přihlásit přes Instagram</twig:Button>
-            </section>
-        {% else %}
-            {% set draw_form %}
-            <form method="post" action="{{ path('losovani') }}" id="draw-form" class="{{ result ? 'px-6 pb-6 sm:px-8 sm:pb-8' : 'rounded-3xl bg-card p-6 sm:p-8 shadow-sm' }} space-y-6">
-                {# Instagram only returns comments of accounts with a role on the Meta app, so pasting is the default. #}
-                {% set source = form.source ?? 'paste' %}
-                <fieldset class="grid grid-cols-2 gap-1 rounded-full bg-secondary p-1 text-sm">
-                    <legend class="sr-only">Odkud vzít komentáře</legend>
-                    {% for value, caption in {paste: 'Vložit komentáře', instagram: 'Odkaz na příspěvek'} %}
-                        <label class="cursor-pointer rounded-full px-3 py-2 text-center has-[:checked]:bg-card has-[:checked]:font-semibold has-[:checked]:shadow-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/50">
-                            <input type="radio" name="source" value="{{ value }}" class="sr-only" {{ source == value ? 'checked' }}>
-                            {{ caption }}
-                        </label>
-                    {% endfor %}
-                </fieldset>
-
-                <div class="space-y-3" data-source="paste">
-                    <label class="block space-y-2">
-                        <span class="{{ label }}">Komentáře</span>
-                        <textarea name="pasted" rows="6" placeholder="@jmeno | text komentáře&#10;↳ @jmeno | odpověď" class="{{ input }} font-mono text-sm">{{ form.pasted ?? '' }}</textarea>
-                    </label>
-                    <details class="group rounded-2xl border border-dashed border-wood px-4 py-3 text-sm">
-                        <summary class="flex cursor-pointer list-none items-center justify-between font-semibold [&::-webkit-details-marker]:hidden">
-                            Jak získat komentáře ze screenshotů
-                            <span class="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
-                        </summary>
-                        <ol class="mt-3 list-decimal space-y-1 pl-5 text-muted-foreground">
-                            <li>V Instagramu udělej screenshoty všech komentářů pod příspěvkem.</li>
-                            <li>Zkopíruj prompt níže a vlož ho do aplikace Claude, přilož screenshoty a odešli.</li>
-                            <li>Odpověď (seznam řádků <code>@jméno | text</code>) zkopíruj a vlož do pole Komentáře.</li>
-                        </ol>
-                        <pre class="mt-3 max-h-48 overflow-auto whitespace-pre-wrap rounded-xl bg-secondary p-3 text-xs" id="prompt">{{ prompt }}</pre>
-                        <twig:Button type="button" variant="outline" size="sm" class="mt-3 rounded-full" id="copy-prompt">Zkopírovat prompt</twig:Button>
-                    </details>
-                </div>
-
-                <label class="block space-y-2" data-source="instagram">
-                    <span class="{{ label }}">Odkaz na příspěvek</span>
-                    <input type="url" name="url" value="{{ form.url ?? '' }}" placeholder="https://www.instagram.com/p/…" class="{{ input }}">
-                    <span class="block text-xs text-muted-foreground">Načte jen komentáře účtů, které mají v Meta aplikaci roli testera.</span>
-                </label>
-
-                <div class="grid gap-6 sm:grid-cols-2">
-                    <label class="block space-y-2">
-                        <span class="{{ label }}">Komentář musí obsahovat</span>
-                        <input type="text" name="keyword" value="{{ form.keyword ?? '' }}" placeholder="slovo nebo #hashtag" class="{{ input }}">
-                    </label>
-                    <label class="block space-y-2">
-                        <span class="{{ label }}">Označit aspoň přátel</span>
-                        <input type="number" name="min_mentions" min="0" max="20" value="{{ form.min_mentions ?? 0 }}" class="{{ input }}">
-                    </label>
-                    <label class="block space-y-2">
-                        <span class="{{ label }}">Uzávěrka</span>
-                        <input type="datetime-local" name="deadline" value="{{ form.deadline ?? '' }}" class="{{ input }}">
-                        <span class="block text-xs text-muted-foreground" data-source="paste">U vložených komentářů se nepoužije, screenshoty neukazují přesný čas.</span>
-                    </label>
-                    <label class="block space-y-2">
-                        <span class="{{ label }}">Počet výherců</span>
-                        <input type="number" name="winners" min="1" max="50" value="{{ form.winners ?? 1 }}" class="{{ input }}">
-                    </label>
-                </div>
-
+        {% set draw_form %}
+        <form method="post" action="{{ path('losovani') }}" id="draw-form" class="{{ result ? 'px-6 pb-6 sm:px-8 sm:pb-8' : 'rounded-3xl bg-card p-6 sm:p-8 shadow-sm' }} space-y-6">
+            <div class="space-y-3">
                 <label class="block space-y-2">
-                    <span class="{{ label }}">Vyřadit účty</span>
-                    <input type="text" name="excluded" value="{{ form.excluded ?? '' }}" placeholder="@ucet1, @ucet2" class="{{ input }}">
+                    <span class="{{ label }}">Komentáře</span>
+                    <textarea name="pasted" rows="6" required placeholder="@jmeno | text komentáře&#10;↳ @jmeno | odpověď" class="{{ input }} font-mono text-sm">{{ form.pasted ?? '' }}</textarea>
                 </label>
+                <details class="group rounded-2xl border border-dashed border-wood px-4 py-3 text-sm">
+                    <summary class="flex cursor-pointer list-none items-center justify-between font-semibold [&::-webkit-details-marker]:hidden">
+                        Jak získat komentáře ze screenshotů
+                        <span class="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
+                    </summary>
+                    <ol class="mt-3 list-decimal space-y-1 pl-5 text-muted-foreground">
+                        <li>V Instagramu udělej screenshoty všech komentářů pod příspěvkem.</li>
+                        <li>Zkopíruj prompt níže a vlož ho do aplikace Claude, přilož screenshoty a odešli.</li>
+                        <li>Odpověď (seznam řádků <code>@jméno | text</code>) zkopíruj a vlož do pole Komentáře.</li>
+                    </ol>
+                    <pre class="mt-3 max-h-48 overflow-auto whitespace-pre-wrap rounded-xl bg-secondary p-3 text-xs" id="prompt">{{ prompt }}</pre>
+                    <twig:Button type="button" variant="outline" size="sm" class="mt-3 rounded-full" id="copy-prompt">Zkopírovat prompt</twig:Button>
+                </details>
+            </div>
 
-                <div class="space-y-3">
-                    <label class="flex items-center gap-3">
-                        <input type="checkbox" name="one_per_user" value="1" class="size-4 accent-primary" {{ (submitted ? form.one_per_user is defined : true) ? 'checked' }}>
-                        Jeden los na účet <span class="text-sm text-muted-foreground">(platí první komentář)</span>
-                    </label>
-                    <label class="flex items-center gap-3">
-                        <input type="checkbox" name="include_replies" value="1" class="size-4 accent-primary" {{ form.include_replies is defined ? 'checked' }}>
-                        Počítat i odpovědi na komentáře
-                    </label>
-                </div>
+            <div class="grid gap-6 sm:grid-cols-2">
+                <label class="block space-y-2">
+                    <span class="{{ label }}">Komentář musí obsahovat</span>
+                    <input type="text" name="keyword" value="{{ form.keyword ?? '' }}" placeholder="slovo nebo #hashtag" class="{{ input }}">
+                </label>
+                <label class="block space-y-2">
+                    <span class="{{ label }}">Označit aspoň přátel</span>
+                    <input type="number" name="min_mentions" min="0" max="20" value="{{ form.min_mentions ?? 0 }}" class="{{ input }}">
+                </label>
+                <label class="block space-y-2">
+                    <span class="{{ label }}">Počet výherců</span>
+                    <input type="number" name="winners" min="1" max="50" value="{{ form.winners ?? 1 }}" class="{{ input }}">
+                </label>
+            </div>
 
-                <div class="text-center pt-2">
-                    <twig:Button type="submit" size="lg" class="rounded-full px-10 text-base">Losovat ♥</twig:Button>
-                </div>
-            </form>
-            {% endset %}
-            {% if not result %}{{ draw_form }}{% endif %}
-        {% endif %}
+            <label class="block space-y-2">
+                <span class="{{ label }}">Vyřadit účty</span>
+                <input type="text" name="excluded" value="{{ submitted ? form.excluded ?? '' : '@vercinc_vysivky' }}" placeholder="@ucet1, @ucet2" class="{{ input }}">
+                <span class="block text-xs text-muted-foreground">Třeba vlastní účet, aby nevyhrály vlastní odpovědi.</span>
+            </label>
+
+            <div class="space-y-3">
+                <label class="flex items-center gap-3">
+                    <input type="checkbox" name="one_per_user" value="1" class="size-4 accent-primary" {{ (submitted ? form.one_per_user is defined : true) ? 'checked' }}>
+                    Jeden los na účet <span class="text-sm text-muted-foreground">(platí první komentář)</span>
+                </label>
+                <label class="flex items-center gap-3">
+                    <input type="checkbox" name="include_replies" value="1" class="size-4 accent-primary" {{ form.include_replies is defined ? 'checked' }}>
+                    Počítat i odpovědi na komentáře
+                </label>
+            </div>
+
+            <div class="text-center pt-2">
+                <twig:Button type="submit" size="lg" class="rounded-full px-10 text-base">Losovat ♥</twig:Button>
+            </div>
+        </form>
+        {% endset %}
+        {% if not result %}{{ draw_form }}{% endif %}
 
         {% if error %}
             <p class="rounded-2xl border-2 border-dashed border-coral bg-card px-5 py-3 text-center">{{ error }}</p>
         {% endif %}
 
         {% if result %}
-            {% if result.post.expectedComments is not null and result.entries|length < result.post.expectedComments %}
-                <p class="rounded-2xl border-2 border-dashed border-coral bg-card px-5 py-3 text-center text-sm">
-                    Instagram u příspěvku uvádí {{ result.post.expectedComments }} komentářů, ale vrátil jen {{ result.entries|length }}.
-                    Losuje se jen z načtených.
-                </p>
-            {% endif %}
             {% if result.post.skippedLines %}
                 <div class="rounded-2xl border-2 border-dashed border-coral bg-card px-5 py-3 text-sm space-y-2">
                     <p>{{ result.post.skippedLines|length }} {{ result.post.skippedLines|length == 1 ? 'řádek není' : 'řádků není' }} ve tvaru „@jméno | text“ a do losování se nedostal:</p>
@@ -190,7 +139,6 @@
                 {% set rules = [
                     criteria.keyword ? 'obsahuje „' ~ criteria.keyword ~ '“',
                     criteria.minMentions > 0 ? 'min. ' ~ criteria.minMentions ~ ' označení',
-                    criteria.deadline and result.post.hasTimestamps ? 'do ' ~ criteria.deadline|date('j. n. H:i', 'Europe/Prague'),
                     criteria.onePerUser ? '1 los na účet' : 'los za každý komentář',
                     criteria.includeReplies ? 'i odpovědi',
                     criteria.excluded ? 'vyřazeno: @' ~ criteria.excluded|join(', @'),
@@ -218,12 +166,7 @@
                 </div>
 
                 <p class="text-center text-sm text-muted-foreground">
-                    Vylosováno {{ result.drawnAt|date('j. n. Y, H:i:s') }}
-                    {% if result.post.permalink %}
-                        z příspěvku <a href="{{ result.post.permalink }}" class="underline underline-offset-4">@{{ result.post.owner }}</a>.
-                    {% else %}
-                        z vložených komentářů.
-                    {% endif %}
+                    Vylosováno {{ result.drawnAt|date('j. n. Y, H:i:s') }} z {{ result.entries|length }} vložených komentářů.
                 </p>
 
                 <details class="group rounded-3xl bg-card shadow-sm">
@@ -246,7 +189,6 @@
                                 <div class="min-w-0 flex-1">
                                     <p class="break-words"><strong>@{{ entry.comment.username }}</strong> {{ entry.comment.text }}</p>
                                     <p class="text-xs text-muted-foreground">
-                                        {% if result.post.hasTimestamps %}{{ entry.comment.timestamp|date('j. n. H:i', 'Europe/Prague') }} · {% endif %}
                                         {{ entry.comment.isReply ? 'odpověď · ' }}{{ entry.comment.uncertain ? '⚠ nejistý přepis · ' }}<span class="{{ entry.reason ? 'text-coral' : 'text-primary' }}">{{ entry.reason ?? 'v losování' }}</span>
                                     </p>
                                 </div>
@@ -258,10 +200,10 @@
         {% endif %}
     </main>
 
-    {# Shown while the form posts: loading the comments can take a few seconds. #}
+    {# Shown while the form posts. #}
     <div id="drawing" class="fixed inset-0 z-40 flex items-center justify-center bg-background/85 px-6 backdrop-blur-sm" hidden>
         <div class="w-full max-w-sm rounded-3xl bg-card p-8 text-center shadow-lg space-y-5">
-            <p class="font-typewriter text-xl" id="drawing-text">Načítám komentáře…</p>
+            <p class="font-typewriter text-xl" id="drawing-text">Čtu komentáře…</p>
             <div class="h-4 rounded-full border-2 border-dashed border-wood p-0.5">
                 <div class="h-full w-0 rounded-full bg-[repeating-linear-gradient(-45deg,var(--color-primary)_0_8px,var(--color-wood-light)_8px_12px)] transition-[width] duration-300" id="drawing-bar"></div>
             </div>
@@ -281,17 +223,6 @@
     <script>
         (function () {
             const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-            // Show the inputs of the chosen comment source; without JS both stay visible.
-            const sources = document.querySelectorAll('input[name=source]');
-            const showSource = () => {
-                const chosen = document.querySelector('input[name=source]:checked')?.value;
-                document.querySelectorAll('[data-source]').forEach((element) => { element.hidden = element.dataset.source !== chosen; });
-            };
-            sources.forEach((radio) => radio.addEventListener('change', showSource));
-            if (sources.length) {
-                showSource();
-            }
 
             const copy = document.getElementById('copy-prompt');
             copy?.addEventListener('click', async () => {
@@ -313,7 +244,7 @@
                 form.addEventListener('submit', () => {
                     const bar = document.getElementById('drawing-bar');
                     const text = document.getElementById('drawing-text');
-                    const steps = ['Načítám komentáře…', 'Kontroluji pravidla…', 'Míchám losy…'];
+                    const steps = ['Čtu komentáře…', 'Kontroluji pravidla…', 'Míchám losy…'];
                     let progress = 0;
                     overlay.hidden = false;
                     setInterval(() => {
