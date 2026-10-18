@@ -17,7 +17,7 @@ jobs:
       - name: Cache Composer
         uses: actions/cache@v6
         with:
-          path: ~/.composer/cache
+          path: ~/.cache/composer
           key: composer-${{ hashFiles('composer.lock') }}
 
       - name: Install dependencies
@@ -38,6 +38,7 @@ jobs:
       - name: Production build
         run: |
           echo "APP_SECRET=ci" > .env.local
+          echo "APP_REVISION=ci-revision" >> .env.local
           composer dump-env prod
           composer install --no-dev --classmap-authoritative --optimize-autoloader
           php bin/console tailwind:build --minify
@@ -56,4 +57,5 @@ jobs:
           check / 200 || ok=1
           check /enyaq 200 || ok=1
           check /does-not-exist 404 || ok=1
+          curl -s http://127.0.0.1:8000/ | grep -qF '<meta name="revision" content="ci-revision">' || { echo "revision meta missing"; ok=1; }
           [ "$ok" = 0 ] || { cat /tmp/server.log; exit 1; }
