@@ -9,6 +9,7 @@ namespace App\Losovani;
  *
  * Claude transcribes every screenshot in full and the overlap between neighbouring screenshots is
  * removed here: asking Claude to deduplicate also merged identical comments a person really posted twice.
+ * The overlap is matched loosely (see same()) because the same comment is rarely transcribed identically.
  */
 class PastedComments
 {
@@ -79,6 +80,13 @@ class PastedComments
             } else {
                 $overlap = self::overlap($previous, $group);
                 $kept = array_slice($group, $overlap);
+                // Of the two transcriptions of an overlapping comment keep the more complete one.
+                for ($i = 1; $i <= $overlap && $i <= count($comments); ++$i) {
+                    $later = $group[$overlap - $i];
+                    if (self::completeness($later) > self::completeness($comments[count($comments) - $i])) {
+                        $comments[count($comments) - $i] = $later;
+                    }
+                }
                 $screenshots[] = ['number' => $number, 'comments' => count($kept), 'overlap' => $overlap];
             }
             array_push($comments, ...$kept);
@@ -101,16 +109,53 @@ class PastedComments
      */
     private static function overlap(array $previous, array $next): int
     {
-        $tail = array_map(static fn (Comment $comment) => $comment->key(), $previous);
-        $head = array_map(static fn (Comment $comment) => $comment->key(), $next);
-
-        for ($size = min(count($tail), count($head)); $size > 0; --$size) {
-            if (array_slice($tail, -$size) === array_slice($head, 0, $size)) {
+        for ($size = min(count($previous), count($next)); $size > 0; --$size) {
+            $tail = array_slice($previous, -$size);
+            for ($i = 0; $i < $size && self::same($tail[$i], $next[$i]); ++$i) {
+            }
+            if ($i === $size) {
                 return $size;
             }
         }
 
         return 0;
+    }
+
+    /**
+     * Ranks two transcriptions of one comment: more tags, then a sure reading, then more text.
+     *
+     * @return array{int, int, int}
+     */
+    private static function completeness(Comment $comment): array
+    {
+        return [count($comment->mentions()), $comment->uncertain ? 0 : 1, mb_strlen($comment->text)];
+    }
+
+    /**
+     * Whether two transcriptions are the same comment seen on two screenshots. Claude may read it
+     * differently each time (cut-off text, emoji, a misread tag), so the account must match and then
+     * the tags, or the texts must be close, or one must be the start of the other.
+     */
+    private static function same(Comment $a, Comment $b): bool
+    {
+        if (strtolower($a->username) !== strtolower($b->username)) {
+            return false;
+        }
+        if ($a->key() === $b->key()) {
+            return true;
+        }
+
+        $normalize = static fn (Comment $comment) => preg_replace('/[^\p{L}\p{N}@._]+/u', '', mb_strtolower($comment->text));
+        [$x, $y] = [$normalize($a), $normalize($b)];
+        if ('' === $x || '' === $y) {
+            return false;
+        }
+        if (str_starts_with($x, $y) || str_starts_with($y, $x)) {
+            return min(mb_strlen($x), mb_strlen($y)) >= 8;
+        }
+        similar_text($x, $y, $percent);
+
+        return $percent >= 80;
     }
 
     /**
