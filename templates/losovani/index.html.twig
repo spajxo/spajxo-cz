@@ -107,24 +107,30 @@
                 </p>
             {% endif %}
             <section class="space-y-10">
+                {# Phones: one big hoop for a single winner, two smaller ones per row for several. #}
+                {% set several = result.winners|length > 1 %}
                 <div class="space-y-6 text-center">
-                    <p class="font-typewriter text-2xl">{{ result.winners|length > 1 ? 'A vyhrávají…' : 'A vyhrává…' }}</p>
-                    <div class="flex flex-wrap justify-center gap-6" id="winners"
+                    <p class="font-typewriter text-2xl">{{ several ? 'A vyhrávají…' : 'A vyhrává…' }}</p>
+                    <div class="{{ several ? 'grid grid-cols-2 gap-x-3 gap-y-6 sm:flex sm:flex-wrap sm:justify-center sm:gap-6' : 'flex justify-center' }}" id="winners"
                         data-pool="{{ result.valid|map(c => c.username)|json_encode|e('html_attr') }}">
                         {% for winner in result.winners %}
-                            <div class="w-60 space-y-3" data-winner>
-                                <div class="relative mx-auto flex size-56 items-center justify-center rounded-full border-[10px] border-wood bg-card p-6 ring-4 ring-wood-light ring-inset shadow-md">
-                                    <span class="absolute -top-4 left-1/2 h-5 w-6 -translate-x-1/2 rounded-sm bg-wood"></span>
-                                    <span class="absolute inset-5 rounded-full border border-dashed border-primary"></span>
-                                    <span class="font-typewriter {{ winner.username|length > 12 ? 'text-base' : 'text-xl' }} break-words [overflow-wrap:anywhere]" data-name="@{{ winner.username }}">@{{ winner.username }}</span>
+                            {% set long = winner.username|length > 12 %}
+                            <div class="min-w-0 space-y-2 sm:w-60 sm:space-y-3 {{ several ? 'odd:last:col-span-2' : 'w-60' }}" data-winner>
+                                <div class="relative mx-auto flex items-center justify-center rounded-full bg-card ring-4 ring-wood-light ring-inset shadow-md {{ several ? 'size-36 border-[7px] p-4 sm:size-56 sm:border-[10px] sm:p-6' : 'size-56 border-[10px] p-6' }} border-wood">
+                                    <span class="absolute left-1/2 -translate-x-1/2 rounded-sm bg-wood {{ several ? '-top-3 h-4 w-5 sm:-top-4 sm:h-5 sm:w-6' : '-top-4 h-5 w-6' }}"></span>
+                                    <span class="absolute rounded-full border border-dashed border-primary {{ several ? 'inset-3 sm:inset-5' : 'inset-5' }}"></span>
+                                    <span class="font-typewriter break-words [overflow-wrap:anywhere] {{ several ? (long ? 'text-xs sm:text-base' : 'text-sm sm:text-xl') : (long ? 'text-base' : 'text-xl') }}" data-name="@{{ winner.username }}">@{{ winner.username }}</span>
                                 </div>
-                                <p class="text-sm text-muted-foreground" data-quote>„{{ winner.text }}“</p>
+                                <p class="line-clamp-3 px-1 text-xs text-muted-foreground sm:text-sm" data-quote>„{{ winner.text }}“</p>
                             </div>
                         {% else %}
                             <p class="text-muted-foreground">Žádný komentář nesplňuje pravidla soutěže.</p>
                         {% endfor %}
                     </div>
-                    <twig:Button type="button" size="lg" id="reveal" class="rounded-full px-10 text-base" hidden>Odhalit výherce ♥</twig:Button>
+                    {# Sticks to the bottom of the screen while there are winners left to reveal. #}
+                    <div class="sticky bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 flex justify-center">
+                        <twig:Button type="button" size="lg" id="reveal" class="rounded-full px-10 text-base shadow-lg" hidden>Odhalit výherce ♥</twig:Button>
+                    </div>
                 </div>
 
                 <div class="flex flex-wrap justify-center gap-3">
@@ -213,6 +219,7 @@
 
     <style>
         .is-sealed [data-quote] { visibility: hidden; }
+        .is-sealed:not(.is-spinning) [data-name] { font-size: 2.5rem; line-height: 1; }
         .is-spinning [data-name] { filter: blur(0.5px); opacity: 0.75; }
         @keyframes tada { 0% { transform: scale(1); } 30% { transform: scale(0.9) rotate(-4deg); } 55% { transform: scale(1.12) rotate(3deg); } 75% { transform: scale(0.98) rotate(-1deg); } 100% { transform: none; } }
         .is-revealed > div:first-child { animation: tada 700ms ease-out both; }
@@ -360,6 +367,7 @@
                     return;
                 }
                 button.disabled = true;
+                winner.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
                 const name = winner.querySelector('[data-name]');
                 winner.classList.add('is-spinning');
                 await spin(name);
