@@ -10,6 +10,8 @@ class Comment
         public readonly bool $isReply = false,
         // marked [nejisté] when transcribed from a screenshot
         public readonly bool $uncertain = false,
+        // number of the screenshot it was transcribed from, 0 when the paste has no "# N" sections
+        public readonly int $screenshot = 0,
     ) {
     }
 

@@ -32,7 +32,9 @@ class LosovaniController extends AbstractController
             try {
                 $post = PastedComments::parse($request->request->getString('pasted'));
                 $criteria = Criteria::fromRequest($request);
-                $result = ['post' => $post, 'criteria' => $criteria] + $this->draw->run($post, $criteria);
+                // The comment count Instagram shows, to check that the transcription missed nothing.
+                $expected = $request->request->getInt('expected') ?: null;
+                $result = ['post' => $post, 'criteria' => $criteria, 'expected' => $expected] + $this->draw->run($post, $criteria);
             } catch (\InvalidArgumentException $exception) {
                 $error = $exception->getMessage();
             }
