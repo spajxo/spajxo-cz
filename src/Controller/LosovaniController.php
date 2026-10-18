@@ -44,7 +44,8 @@ class LosovaniController extends AbstractController
                     null === $account => throw new \InvalidArgumentException('Přihlášení vypršelo, přihlaste se prosím znovu.'),
                     default => $this->instagram->post($request->request->getString('url'), $account['token']),
                 };
-                $result = ['post' => $post] + $this->draw->run($post, Criteria::fromRequest($request));
+                $criteria = Criteria::fromRequest($request);
+                $result = ['post' => $post, 'criteria' => $criteria] + $this->draw->run($post, $criteria);
             } catch (\InvalidArgumentException $exception) {
                 $error = $exception->getMessage();
             } catch (HttpExceptionInterface $exception) {

@@ -18,9 +18,9 @@
     <main class="mx-auto max-w-2xl px-4 sm:px-6 py-12 space-y-10">
         <header class="text-center space-y-3">
             <img src="{{ asset('images/vercinc-vysivky-logo.webp') }}" alt="Verčinc výšivky" width="128" height="128"
-                class="mx-auto size-32 rounded-full bg-white p-1 ring-2 ring-wood-light shadow-sm">
-            <h1 class="font-typewriter text-4xl sm:text-5xl">Losování výherců</h1>
-            <p class="text-muted-foreground">Vyšijeme to poctivě, stejně jako losování 🧵</p>
+                class="mx-auto {{ result ? 'size-20' : 'size-32' }} rounded-full bg-white p-1 ring-2 ring-wood-light shadow-sm">
+            <h1 class="font-typewriter {{ result ? 'text-3xl' : 'text-4xl sm:text-5xl' }}">Losování výherců</h1>
+            {% if not result %}<p class="text-muted-foreground">Vyšijeme to poctivě, stejně jako losování 🧵</p>{% endif %}
             {% if account %}
                 <form method="post" action="{{ path('losovani_logout') }}" class="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                     <span>Přihlášeno: <strong class="text-foreground">@{{ account }}</strong></span>
@@ -45,7 +45,8 @@
                 <twig:Button as="a" href="{{ path('losovani_login') }}" size="lg" class="rounded-full px-8 text-base">Přihlásit přes Instagram</twig:Button>
             </section>
         {% else %}
-            <form method="post" action="{{ path('losovani') }}" class="rounded-3xl bg-card p-6 sm:p-8 shadow-sm space-y-6">
+            {% set draw_form %}
+            <form method="post" action="{{ path('losovani') }}" id="draw-form" class="{{ result ? 'px-6 pb-6 sm:px-8 sm:pb-8' : 'rounded-3xl bg-card p-6 sm:p-8 shadow-sm' }} space-y-6">
                 <label class="block space-y-2">
                     <span class="{{ label }}">Odkaz na příspěvek</span>
                     <input type="url" name="url" value="{{ form.url ?? '' }}" placeholder="https://www.instagram.com/p/…" class="{{ input }}" {{ sample ? '' : 'required' }}>
@@ -90,6 +91,8 @@
                     <twig:Button type="submit" size="lg" class="rounded-full px-10 text-base">Losovat ♥</twig:Button>
                 </div>
             </form>
+            {% endset %}
+            {% if not result %}{{ draw_form }}{% endif %}
         {% endif %}
 
         {% if error %}
@@ -106,21 +109,43 @@
             <section class="space-y-10">
                 <div class="space-y-6 text-center">
                     <p class="font-typewriter text-2xl">{{ result.winners|length > 1 ? 'A vyhrávají…' : 'A vyhrává…' }}</p>
-                    <div class="flex flex-wrap justify-center gap-6">
+                    <div class="flex flex-wrap justify-center gap-6" id="winners"
+                        data-pool="{{ result.valid|map(c => c.username)|json_encode|e('html_attr') }}">
                         {% for winner in result.winners %}
-                            <div class="w-60 space-y-3">
+                            <div class="w-60 space-y-3" data-winner>
                                 <div class="relative mx-auto flex size-56 items-center justify-center rounded-full border-[10px] border-wood bg-card p-6 ring-4 ring-wood-light ring-inset shadow-md">
                                     <span class="absolute -top-4 left-1/2 h-5 w-6 -translate-x-1/2 rounded-sm bg-wood"></span>
                                     <span class="absolute inset-5 rounded-full border border-dashed border-primary"></span>
-                                    <span class="font-typewriter {{ winner.username|length > 12 ? 'text-base' : 'text-xl' }} break-words [overflow-wrap:anywhere]">@{{ winner.username }}</span>
+                                    <span class="font-typewriter {{ winner.username|length > 12 ? 'text-base' : 'text-xl' }} break-words [overflow-wrap:anywhere]" data-name="@{{ winner.username }}">@{{ winner.username }}</span>
                                 </div>
-                                <p class="text-sm text-muted-foreground">„{{ winner.text }}“</p>
+                                <p class="text-sm text-muted-foreground" data-quote>„{{ winner.text }}“</p>
                             </div>
                         {% else %}
                             <p class="text-muted-foreground">Žádný komentář nesplňuje pravidla soutěže.</p>
                         {% endfor %}
                     </div>
+                    <twig:Button type="button" size="lg" id="reveal" class="rounded-full px-10 text-base" hidden>Odhalit výherce ♥</twig:Button>
                 </div>
+
+                <div class="flex flex-wrap justify-center gap-3">
+                    <twig:Button type="submit" form="draw-form" variant="outline" class="rounded-full px-6">↻ Losovat znovu</twig:Button>
+                    <twig:Button as="a" href="{{ path('losovani') }}" variant="ghost" class="rounded-full px-6">Nové losování</twig:Button>
+                </div>
+
+                {% set criteria = result.criteria %}
+                {% set rules = [
+                    criteria.keyword ? 'obsahuje „' ~ criteria.keyword ~ '“',
+                    criteria.minMentions > 0 ? 'min. ' ~ criteria.minMentions ~ ' označení',
+                    criteria.deadline ? 'do ' ~ criteria.deadline|date('j. n. H:i', 'Europe/Prague'),
+                    criteria.onePerUser ? '1 los na účet' : 'los za každý komentář',
+                    criteria.includeReplies ? 'i odpovědi',
+                    criteria.excluded ? 'vyřazeno: @' ~ criteria.excluded|join(', @'),
+                ]|filter(rule => rule) %}
+                <ul class="flex flex-wrap justify-center gap-2 text-sm" aria-label="Pravidla losování">
+                    {% for rule in rules %}
+                        <li class="rounded-full border border-dashed border-wood bg-card px-3 py-1">{{ rule }}</li>
+                    {% endfor %}
+                </ul>
 
                 {# Story-highlight style circles. #}
                 <div class="flex justify-center gap-5 sm:gap-8">
@@ -143,9 +168,20 @@
                     <a href="{{ result.post.permalink }}" class="underline underline-offset-4">@{{ result.post.owner }}</a>.
                 </p>
 
-                <div class="rounded-3xl bg-card p-4 sm:p-6 shadow-sm">
-                    <h2 class="font-typewriter text-lg mb-4">Všechny komentáře</h2>
-                    <ul class="divide-y divide-dashed divide-border">
+                <details class="group rounded-3xl bg-card shadow-sm">
+                    <summary class="flex cursor-pointer list-none items-center justify-between px-6 py-4 font-typewriter text-lg [&::-webkit-details-marker]:hidden">
+                        Upravit pravidla
+                        <span class="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
+                    </summary>
+                    {{ draw_form }}
+                </details>
+
+                <details class="group rounded-3xl bg-card shadow-sm">
+                    <summary class="flex cursor-pointer list-none items-center justify-between px-6 py-4 font-typewriter text-lg [&::-webkit-details-marker]:hidden">
+                        Všechny komentáře ({{ result.entries|length }})
+                        <span class="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
+                    </summary>
+                    <ul class="divide-y divide-dashed divide-border px-4 pb-4 sm:px-6 sm:pb-6">
                         {% for entry in result.entries %}
                             <li class="flex gap-3 py-3 {{ entry.reason ? 'opacity-60' }}">
                                 <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs {{ entry.reason ? 'bg-muted' : 'bg-primary text-primary-foreground' }}">{{ entry.reason ? '–' : '✓' }}</span>
@@ -159,8 +195,186 @@
                             </li>
                         {% endfor %}
                     </ul>
-                </div>
+                </details>
             </section>
         {% endif %}
     </main>
+
+    {# Shown while the form posts: loading the comments can take a few seconds. #}
+    <div id="drawing" class="fixed inset-0 z-40 flex items-center justify-center bg-background/85 px-6 backdrop-blur-sm" hidden>
+        <div class="w-full max-w-sm rounded-3xl bg-card p-8 text-center shadow-lg space-y-5">
+            <p class="font-typewriter text-xl" id="drawing-text">Načítám komentáře…</p>
+            <div class="h-4 rounded-full border-2 border-dashed border-wood p-0.5">
+                <div class="h-full w-0 rounded-full bg-[repeating-linear-gradient(-45deg,var(--color-primary)_0_8px,var(--color-wood-light)_8px_12px)] transition-[width] duration-300" id="drawing-bar"></div>
+            </div>
+        </div>
+    </div>
+    <canvas id="confetti" class="pointer-events-none fixed inset-0 z-50 size-full" hidden></canvas>
+
+    <style>
+        .is-sealed [data-quote] { visibility: hidden; }
+        .is-spinning [data-name] { filter: blur(0.5px); opacity: 0.75; }
+        @keyframes tada { 0% { transform: scale(1); } 30% { transform: scale(0.9) rotate(-4deg); } 55% { transform: scale(1.12) rotate(3deg); } 75% { transform: scale(0.98) rotate(-1deg); } 100% { transform: none; } }
+        .is-revealed > div:first-child { animation: tada 700ms ease-out both; }
+        @media (prefers-reduced-motion: reduce) { .is-revealed > div:first-child { animation: none; } }
+    </style>
+
+    <script>
+        (function () {
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            // Loading overlay with a stitched progress bar that creeps towards 90 % until the page answers.
+            const form = document.getElementById('draw-form');
+            const overlay = document.getElementById('drawing');
+            if (form) {
+                form.addEventListener('submit', () => {
+                    const bar = document.getElementById('drawing-bar');
+                    const text = document.getElementById('drawing-text');
+                    const steps = ['Načítám komentáře…', 'Kontroluji pravidla…', 'Míchám losy…'];
+                    let progress = 0;
+                    overlay.hidden = false;
+                    setInterval(() => {
+                        progress += (90 - progress) * 0.08;
+                        bar.style.width = progress + '%';
+                        text.textContent = steps[Math.min(steps.length - 1, Math.floor(progress / 30))];
+                    }, 200);
+                });
+                // Back/forward cache restores the page with the overlay still up.
+                window.addEventListener('pageshow', () => { overlay.hidden = true; });
+            }
+
+            const container = document.getElementById('winners');
+            const button = document.getElementById('reveal');
+            const winners = container ? [...container.querySelectorAll('[data-winner]')] : [];
+            if (winners.length === 0) {
+                return;
+            }
+
+            const pool = JSON.parse(container.dataset.pool).map((name) => '@' + name);
+            winners.forEach((winner) => {
+                winner.classList.add('is-sealed');
+                winner.querySelector('[data-name]').textContent = '?';
+            });
+            button.hidden = false;
+            container.parentElement.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
+
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+            async function spin(name, target) {
+                if (reducedMotion || pool.length < 2) {
+                    return;
+                }
+                // Decelerating shuffle, like a wheel slowing down.
+                for (let delay = 50; delay < 380; delay *= 1.15) {
+                    name.textContent = pool[Math.floor(Math.random() * pool.length)];
+                    await sleep(delay);
+                }
+            }
+
+            function chime() {
+                try {
+                    const audio = new (window.AudioContext || window.webkitAudioContext)();
+                    [523.25, 659.25, 783.99, 1046.5].forEach((frequency, i) => {
+                        const oscillator = audio.createOscillator();
+                        const gain = audio.createGain();
+                        const start = audio.currentTime + i * 0.11;
+                        oscillator.type = 'triangle';
+                        oscillator.frequency.value = frequency;
+                        gain.gain.setValueAtTime(0.0001, start);
+                        gain.gain.exponentialRampToValueAtTime(0.18, start + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, start + (i === 3 ? 0.9 : 0.25));
+                        oscillator.connect(gain).connect(audio.destination);
+                        oscillator.start(start);
+                        oscillator.stop(start + 1);
+                    });
+                } catch (error) {
+                    // Sound is a bonus; ignore browsers that refuse it.
+                }
+            }
+
+            function confetti(origin) {
+                if (reducedMotion) {
+                    return;
+                }
+                const canvas = document.getElementById('confetti');
+                const context = canvas.getContext('2d');
+                const ratio = window.devicePixelRatio || 1;
+                canvas.width = innerWidth * ratio;
+                canvas.height = innerHeight * ratio;
+                context.scale(ratio, ratio);
+                canvas.hidden = false;
+
+                const style = getComputedStyle(document.body);
+                const colors = ['--color-coral', '--color-primary', '--color-wood', '--color-wood-light'].map((name) => style.getPropertyValue(name).trim());
+                colors.push('#d9a593');
+                const pieces = Array.from({ length: 90 }, () => ({
+                    x: origin.x, y: origin.y,
+                    vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 13 - 4,
+                    size: 6 + Math.random() * 8, spin: Math.random() * 6, turn: (Math.random() - 0.5) * 0.3,
+                    shape: Math.random() < 0.4 ? 'heart' : Math.random() < 0.5 ? 'leaf' : 'dot',
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                }));
+
+                const draw = (piece) => {
+                    context.save();
+                    context.translate(piece.x, piece.y);
+                    context.rotate(piece.spin);
+                    context.fillStyle = piece.color;
+                    const s = piece.size;
+                    context.beginPath();
+                    if (piece.shape === 'heart') {
+                        context.moveTo(0, s * 0.3);
+                        context.bezierCurveTo(-s, -s * 0.4, -s * 0.4, -s, 0, -s * 0.45);
+                        context.bezierCurveTo(s * 0.4, -s, s, -s * 0.4, 0, s * 0.3);
+                    } else if (piece.shape === 'leaf') {
+                        context.ellipse(0, 0, s * 0.25, s * 0.6, 0, 0, Math.PI * 2);
+                    } else {
+                        context.arc(0, 0, s * 0.3, 0, Math.PI * 2);
+                    }
+                    context.fill();
+                    context.restore();
+                };
+
+                const started = performance.now();
+                (function frame(now) {
+                    context.clearRect(0, 0, innerWidth, innerHeight);
+                    pieces.forEach((piece) => {
+                        piece.vy += 0.35;
+                        piece.vx *= 0.99;
+                        piece.x += piece.vx;
+                        piece.y += piece.vy;
+                        piece.spin += piece.turn;
+                        draw(piece);
+                    });
+                    if (now - started < 3000) {
+                        requestAnimationFrame(frame);
+                    } else {
+                        canvas.hidden = true;
+                    }
+                })(started);
+            }
+
+            button.addEventListener('click', async () => {
+                const winner = winners.find((item) => item.classList.contains('is-sealed'));
+                if (!winner || button.disabled) {
+                    return;
+                }
+                button.disabled = true;
+                const name = winner.querySelector('[data-name]');
+                winner.classList.add('is-spinning');
+                await spin(name);
+                winner.classList.remove('is-spinning', 'is-sealed');
+                name.textContent = name.dataset.name;
+                winner.classList.add('is-revealed');
+                const hoop = winner.firstElementChild.getBoundingClientRect();
+                confetti({ x: hoop.left + hoop.width / 2, y: hoop.top + hoop.height / 2 });
+                chime();
+
+                const remaining = winners.filter((item) => item.classList.contains('is-sealed')).length;
+                button.disabled = false;
+                button.hidden = remaining === 0;
+                button.textContent = 'Odhalit dalšího výherce ♥';
+            });
+        })();
+    </script>
 {% endblock %}
