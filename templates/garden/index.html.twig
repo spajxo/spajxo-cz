@@ -10,7 +10,6 @@
             <p class="font-mono text-sm text-primary tracking-wider uppercase" id="today">&ndash;</p>
             <p class="text-6xl sm:text-7xl font-bold font-mono tracking-tight" id="verdict">&ndash;</p>
             <p class="text-muted-foreground text-lg" id="reason">Načítám data o počasí&hellip;</p>
-            <p class="text-sm text-muted-foreground" id="dose" hidden>Dávka: konev (8 l) dešťovky na rostlinu, travinám polovina.</p>
         </section>
 
         <p class="rounded-lg border border-destructive px-4 py-3 text-center" id="frost" hidden></p>
@@ -91,7 +90,6 @@
                     $('verdict').textContent = verdict;
                     $('verdict').classList.toggle('text-primary', verdict === 'Zalít');
                     $('reason').textContent = reason;
-                    $('dose').hidden = verdict !== 'Zalít';
 
                     const frost = daily.time
                         .map((iso, i) => ({ iso, min: minTemp[i] }))
@@ -101,7 +99,7 @@
                         const coldest = frost.reduce((a, b) => (b.min < a.min ? b : a));
                         const label = coldest.min <= 0 ? 'Mráz' : 'Přízemní mrazík';
                         $('frost').textContent = `${label}: ${day(coldest.iso, { weekday: 'long' })} až ${celsius(coldest.min)}. `
-                            + 'Schovat muškáty a eukalyptus, zakrýt citlivé rostliny.';
+                            + 'Ochraňte citlivé rostliny.';
                         $('frost').hidden = false;
                     }
 
