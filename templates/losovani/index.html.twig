@@ -97,6 +97,12 @@
         {% endif %}
 
         {% if result %}
+            {% if result.post.expectedComments is not null and result.entries|length < result.post.expectedComments %}
+                <p class="rounded-2xl border-2 border-dashed border-coral bg-card px-5 py-3 text-center text-sm">
+                    Instagram u příspěvku uvádí {{ result.post.expectedComments }} komentářů, ale vrátil jen {{ result.entries|length }}.
+                    Losuje se jen z načtených.
+                </p>
+            {% endif %}
             <section class="space-y-10">
                 <div class="space-y-6 text-center">
                     <p class="font-typewriter text-2xl">{{ result.winners|length > 1 ? 'A vyhrávají…' : 'A vyhrává…' }}</p>
