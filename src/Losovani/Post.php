@@ -17,6 +17,8 @@ class Post
         public readonly array $comments,
         public readonly array $skippedLines = [],
         public readonly array $screenshots = [],
+        // comments dropped as the scroll overlap between screenshots
+        public readonly int $repeats = 0,
     ) {
     }
 }

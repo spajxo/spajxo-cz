@@ -181,10 +181,14 @@
                                     Instagram do počtu někdy započítá i skryté nebo smazané komentáře.
                                 </p>
                             {% endif %}
+                            {% if result.post.repeats %}
+                                {% set n = result.post.repeats %}
+                                <p class="text-xs text-muted-foreground">Vynecháno {{ n }} opakování: stejný komentář (stejný účet a stejná označení) byl na více screenshotech.</p>
+                            {% endif %}
                             {% if result.post.screenshots|length > 1 %}
                                 <ul class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground" aria-label="Komentáře po screenshotech">
                                     {% for shot in result.post.screenshots %}
-                                        <li>screenshot {{ shot.number }}: {{ shot.comments }}{{ shot.overlap ? ' (' ~ shot.overlap ~ ' z předchozího vynecháno)' }}</li>
+                                        <li>screenshot {{ shot.number }}: {{ shot.comments }}{{ shot.overlap ? ' (+' ~ shot.overlap ~ ' už na jiném screenshotu)' }}</li>
                                     {% endfor %}
                                 </ul>
                             {% endif %}
