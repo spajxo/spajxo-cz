@@ -3,6 +3,11 @@ name: Deploy
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - 'CLAUDE.md'
+      - '.claude/**'
+      - '.github/workflows/ci.yml'
   workflow_dispatch:
     inputs:
       test_mode:
@@ -10,6 +15,11 @@ on:
         required: false
         default: false
         type: boolean
+
+# Two overlapping FTP deploys would interleave renames and the maintenance flag; queue them instead.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -26,7 +36,7 @@ jobs:
       - name: Cache Composer
         uses: actions/cache@v6
         with:
-          path: ~/.composer/cache
+          path: ~/.cache/composer
           key: composer-${{ hashFiles('composer.lock') }}
 
       - name: Install dependencies
@@ -51,3 +61,16 @@ jobs:
           for path in / /enyaq; do
             curl -fsS -o /dev/null --retry 3 --retry-delay 10 --retry-all-errors "https://spajxo.cz$path"
           done
+
+      - name: Check the new revision is live
+        if: ${{ inputs.test_mode != true }}
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsS https://spajxo.cz/ | grep -qF "<meta name=\"revision\" content=\"$GITHUB_SHA\">"; then
+              echo "Revision $GITHUB_SHA is live"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::https://spajxo.cz/ does not serve revision $GITHUB_SHA"
+          exit 1
