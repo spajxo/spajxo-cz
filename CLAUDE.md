@@ -58,3 +58,4 @@ php bin/console debug:router               # List all registered routes
 - Routes defined via PHP attributes (`#[Route]`) on controllers
 - Templates follow `templates/<controller>/<action>.html.twig` with partials prefixed `_`
 - Twig components live in `templates/components/` (anonymous, no backing PHP class needed)
+- Error pages (prod only): one template, `templates/bundles/TwigBundle/Exception/error.html.twig`, with a message per status code; preview in dev at `/_error/{code}`

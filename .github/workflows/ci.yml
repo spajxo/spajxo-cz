@@ -58,4 +58,5 @@ jobs:
           check /enyaq 200 || ok=1
           check /does-not-exist 404 || ok=1
           curl -s http://127.0.0.1:8000/ | grep -qF '<meta name="revision" content="ci-revision">' || { echo "revision meta missing"; ok=1; }
+          curl -s http://127.0.0.1:8000/does-not-exist | grep -qF 'Stránka nenalezena' || { echo "custom 404 page missing"; ok=1; }
           [ "$ok" = 0 ] || { cat /tmp/server.log; exit 1; }
